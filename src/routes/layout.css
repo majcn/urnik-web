@@ -1,1 +1,60 @@
 @import 'tailwindcss';
+
+/*
+ * Ena sama, namerna svetla paleta: stran obstaja zato, da se natisne na bel papir,
+ * zato tu ni temne različice.
+ */
+@theme {
+	--color-ground: #f4f6f8;
+	--color-surface: #ffffff;
+	--color-surface-2: #eaeef2;
+	--color-tinted: #fafbfc;
+	--color-ink: #151a21;
+	--color-muted: #68717d;
+	--color-rule: #d8dde3;
+	--color-rule-strong: #b7c0ca;
+	--color-accent: #28577f;
+	--color-danger: #b03a2e;
+	--color-good: #2e6b4f;
+
+	--font-display: 'Chivo', 'Arial Narrow', sans-serif;
+	--font-body: 'Source Sans 3', 'Segoe UI', system-ui, sans-serif;
+	--font-mono: 'IBM Plex Mono', ui-monospace, monospace;
+}
+
+@layer base {
+	body {
+		margin: 0;
+		background: var(--color-ground);
+		color: var(--color-ink);
+		font-family: var(--font-body);
+		-webkit-font-smoothing: antialiased;
+	}
+}
+
+@utility label-caps {
+	font-family: var(--font-mono);
+	font-size: 10.5px;
+	font-weight: 500;
+	line-height: 1;
+	letter-spacing: 0.11em;
+	text-transform: uppercase;
+	color: var(--color-muted);
+}
+
+@media print {
+	@page {
+		size: A4 landscape;
+		margin: 9mm;
+	}
+
+	body {
+		background: #fff;
+	}
+
+	/* Barvni podlivi blokov in stolpcev morajo preživeti tisk. */
+	* {
+		-webkit-print-color-adjust: exact;
+		print-color-adjust: exact;
+	}
+}
