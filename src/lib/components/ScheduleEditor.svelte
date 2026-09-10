@@ -4,7 +4,7 @@
 	import DetailsPanel from './DetailsPanel.svelte';
 
 	interface Props {
-		/** Besedilo urnika; uvoz .ics ga prepiše od zunaj. */
+		/** Celotna vsebina data.txt, vključno z uvodnimi opombami. */
 		text: string;
 		onapply: (schedule: Schedule) => void;
 		onreset: () => void;
@@ -29,23 +29,7 @@
 	}
 </script>
 
-{#snippet code(sample: string)}
-	<code class="rounded-sm bg-surface-2 px-1 font-mono text-body">{sample}</code>
-{/snippet}
-
 <DetailsPanel title="Urnik — besedilo">
-	{#snippet help()}
-		Ena vrstica na dejavnost. Ime otroka z dvopičjem odpre njegov blok, za njim pa vrstice
-		{@render code('dan ura-ura naziv')}. Dnevi so {@render code('pon tor sre čet pet')}, en dan na
-		vrstico. Neobvezno {@render code('@ kraj')}, {@render code('~15/20')} ali {@render code(
-			'~17:15/18:45'
-		)} za pot tja/nazaj in
-		{@render code('/ kdo pelje')}. Barvo pripišeš v glavo ({@render code('Nejc #C4562F:')}),
-		skupno dejavnost pa pod {@render code('Nejc + Zala:')}. Glava z {@render code('(ozadje)')} označi
-		odraslega: čez vso širino in pod otroki. Vrstice s
-		{@render code('#')} na začetku so opombe.
-	{/snippet}
-
 	<textarea
 		bind:value={text}
 		spellcheck="false"

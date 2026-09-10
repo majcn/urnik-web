@@ -1,0 +1,59 @@
+# Ena vrstica = ena dejavnost:
+#
+#   dan  ura-ura  naziv  [@ kraj]  [/ kdo pelje]  [~pot]
+#
+# Dnevi: pon tor sre čet pet. Vse za uro je neobvezno in sme priti v poljubnem
+# vrstnem redu — tudi naziv sme izostati.
+#
+# Pot se piše z urami: ~17:15/18:45 = odhod ob 17:15, doma ob 18:45. Ena stran
+# sme manjkati (~17:15 ali ~/18:45). Izriše se kot črtkan pas nad oz. pod
+# dejavnostjo; tam stoji tudi voznik.
+#
+# Ime z dvopičjem odpre blok osebe, barva za imenom je neobvezna:
+#   Nejc #1E216B:            oseba — svoja polovica stolpca
+#   Nejc + Zala:             skupna dejavnost — čez oba pasova
+#   Eva #13F2E7 (ozadje):    ozadje — čez vso širino, pod ostalimi in bledo
+#
+# Mreža pokriva 07:00–19:00 in se razširi, če kaj pade izven nje.
+# Vrstice, ki se začnejo z #, so opombe.
+
+Nejc #1E216B:
+
+  # ponedeljek
+  pon  08:20-09:05  MAT
+  pon  09:10-09:55  SLJ
+  pon  10:15-11:00  ŠPO
+  pon  14:00-15:00  Plavanje   @ Bazen   / mama  ~13:30/15:30
+
+  # sreda
+  sre  08:20-09:05  SLJ
+  sre  16:00-17:00  Kitara     @ Glasbena šola  ~15:40
+
+  # petek
+  pet  08:20-09:05  MAT
+  pet  15:00-16:00  Nogomet    @ Igrišče
+
+Zala #9A18AB:
+
+  # ponedeljek
+  pon  08:20-09:05  SLO
+  pon  13:15-14:00  Ples       @ Studio
+
+  # torek
+  tor  08:20-09:05  MAT
+  tor  16:30-17:15  Klavir     @ Glasbena šola  ~16:10/17:35
+
+  # četrtek
+  cet  08:20-09:05  SLO
+  cet  17:00-18:00  Angleščina
+
+Nejc + Zala:
+
+  # oba hkrati, en prevoz — blok gre čez cel stolpec
+  tor  18:00-19:00  Gasilci    @ Dom  / oči  ~17:45/19:15
+
+Eva #13F2E7 (ozadje):
+
+  # odrasli: samo za vednost, brez naziva je le pas
+  pon  08:00-16:00
+  sre  16:20-17:20  @ Kranj  ~16:00

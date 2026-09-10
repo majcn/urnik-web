@@ -24,3 +24,6 @@ vite.config.ts.timestamp-*
 
 # Python
 __pycache__/
+
+# Osebni urnik
+src/lib/data.txt
