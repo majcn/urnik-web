@@ -5,32 +5,31 @@
  *   Nejc #C4562F:
  *     pon  08:20-09:05  SLJ
  *     sre  08:20-09:05  SLJ
- *     pet  15:00-16:00  Nogomet  @ Igrišče  / oči  ~15/20
+ *     sre  17:45-18:30  Orkester  @ Tržič  ~17:15/18:45
  *
  *   Nejc + Zala:
  *     tor  18:00-19:00  Gasilci
  */
-import { PALETTE, colorAt } from './palette';
-import { DAY_ABBR, dayIndex, deaccent, minutes, slugify } from './time';
+import { colorAt } from './palette';
+import { clock, dayIndex, deaccent, minutes, slugify } from './time';
 import type { Activity, Kid, Schedule } from './types';
 
 const HEADER = /^(.*?)\s*:$/;
 const COLOR = /#[0-9a-fA-F]{3,8}/;
 const ROW = /^(\S+)\s+(\d{1,2})[:.](\d{2})\s*[-–—]\s*(\d{1,2})[:.](\d{2})\s+(.+)$/;
-/** "~15" = pot tja, "~15/20" = tja in nazaj, "~/20" = samo nazaj. */
-const TRAVEL = /\s~(\d{1,3})?(?:\/(\d{1,3}))?(?=\s|$)/;
+/**
+ * Pot za "~": ura odhoda, poševnica, ura prihoda domov. Ena stran sme
+ * manjkati: "~17:15", "~/18:45", "~17:15/18:45". Razlika do začetka oz. konca
+ * pokrije pot in morebitno čakanje, zato se ni treba nič računati.
+ */
+const TRAVEL = /\s~(\S+)(?=\s|$)/;
 const MAX_REPORTED = 3;
 
-export class ScheduleTextError extends Error {
-	readonly problems: string[];
-
-	constructor(problems: string[]) {
-		const shown = problems.slice(0, MAX_REPORTED).join('; ');
-		const extra = problems.length > MAX_REPORTED ? ` (+${problems.length - MAX_REPORTED})` : '';
-		super(shown + extra);
-		this.name = 'ScheduleTextError';
-		this.problems = problems;
-	}
+/** Napake naštejemo v eno sporočilo; urejevalnik jih pokaže z njihovo vrstico. */
+function reportProblems(problems: string[]): never {
+	const shown = problems.slice(0, MAX_REPORTED).join('; ');
+	const extra = problems.length > MAX_REPORTED ? ` (+${problems.length - MAX_REPORTED})` : '';
+	throw new Error(shown + extra);
 }
 
 /** Odreže neobvezne "~minute poti", "@ kraj" in "/ kdo pelje" z repa vrstice. */
@@ -38,20 +37,17 @@ function splitTail(rest: string): {
 	name: string;
 	where: string;
 	driver: string;
-	lead: number;
-	back: number;
+	travel: string;
 } {
 	let body = rest.trim();
 	let driver = '';
 	let where = '';
 
-	// "~15" sme stati kjerkoli za nazivom, zato ga poberemo prvega.
-	let lead = 0;
-	let back = 0;
-	const travel = body.match(TRAVEL);
-	if (travel && (travel[1] || travel[2])) {
-		lead = Number(travel[1] ?? 0);
-		back = Number(travel[2] ?? 0);
+	// "~..." sme stati kjerkoli za nazivom, zato ga poberemo prvega.
+	let travel = '';
+	const marked = body.match(TRAVEL);
+	if (marked) {
+		travel = marked[1];
 		body = body.replace(TRAVEL, '').trim();
 	}
 
@@ -65,7 +61,32 @@ function splitTail(rest: string): {
 		where = byPlace.pop()!.trim();
 		body = byPlace.join(' @ ');
 	}
-	return { name: body.trim(), where, driver, lead, back };
+	return { name: body.trim(), where, driver, travel };
+}
+
+type TravelPart = { span: number } | { problem: string };
+
+/**
+ * Ena stran zapisa "~" v minute razlike do sidra (začetka oz. konca dejavnosti).
+ * Ob napaki pove, kaj je narobe — ura na napačni strani je skoraj vedno vrstica,
+ * prepisana z drugega dne.
+ */
+function travelPart(part: string, anchor: number, side: 'pred' | 'po'): TravelPart {
+	if (part === '') return { span: 0 };
+	const stamp = part.match(/^(\d{1,2})[:.](\d{2})$/);
+	if (!stamp) return { problem: `"${part}" ni ura v obliki 17:15` };
+
+	const at = Number(stamp[1]) * 60 + Number(stamp[2]);
+	const span = side === 'pred' ? anchor - at : at - anchor;
+	if (span <= 0) {
+		return {
+			problem:
+				side === 'pred'
+					? `odhod ${part} ni pred začetkom ${clock(anchor)}`
+					: `prihod ${part} ni po koncu ${clock(anchor)}`
+		};
+	}
+	return { span };
 }
 
 export function parseText(source: string): Schedule {
@@ -121,7 +142,7 @@ export function parseText(source: string): Schedule {
 			return;
 		}
 
-		const { name, where, driver, lead, back } = splitTail(row[6]);
+		const { name, where, driver, travel } = splitTail(row[6]);
 		if (name === '') {
 			problems.push(`${lineNo}: manjka naziv dejavnosti`);
 			return;
@@ -129,56 +150,34 @@ export function parseText(source: string): Schedule {
 
 		const start = `${row[2].padStart(2, '0')}:${row[3]}`;
 		const end = `${row[4].padStart(2, '0')}:${row[5]}`;
-		activities.push({ kids: [...current], name, day, start, end, where, driver, lead, back });
+
+		const [there = '', home = ''] = travel.split('/');
+		const lead = travelPart(there, minutes(start), 'pred');
+		const back = travelPart(home, minutes(end), 'po');
+		if ('problem' in lead || 'problem' in back) {
+			const why = 'problem' in lead ? lead.problem : (back as { problem: string }).problem;
+			problems.push(`${lineNo}: pot "~${travel}" — ${why}`);
+			return;
+		}
+
+		activities.push({
+			kids: [...current],
+			name,
+			day,
+			start,
+			end,
+			where,
+			driver,
+			lead: lead.span,
+			back: back.span
+		});
 	});
 
 	if (kids.length === 0) {
 		problems.push('ni nobenega otroka — vrstica z imenom se konča z dvopičjem');
 	}
-	if (problems.length > 0) throw new ScheduleTextError(problems);
+	if (problems.length > 0) reportProblems(problems);
 
 	activities.sort((a, b) => a.day - b.day || minutes(a.start) - minutes(b.start));
 	return { kids, activities };
-}
-
-/** Obratna smer: ena vrstica na dejavnost, urejeno po dnevu in uri. */
-export function toText(schedule: Schedule): string {
-	const byOwner = new Map<string, Activity[]>();
-	for (const activity of schedule.activities) {
-		const key = activity.kids.join('+');
-		const list = byOwner.get(key);
-		if (list) list.push(activity);
-		else byOwner.set(key, [activity]);
-	}
-
-	const shared = [...byOwner.keys()].filter((key) => key.includes('+'));
-	const order = [...schedule.kids.map((kid) => kid.id), ...shared];
-	const lines: string[] = [];
-
-	for (const key of order) {
-		const list = byOwner.get(key);
-		if (!list || list.length === 0) continue;
-
-		const owners = key
-			.split('+')
-			.map(
-				(id) => schedule.kids.find((kid) => kid.id === id) ?? { id, name: id, color: PALETTE[0] }
-			);
-		const color = owners.length === 1 ? ` ${owners[0].color}` : '';
-		lines.push(`${owners.map((kid) => kid.name).join(' + ')}${color}:`);
-
-		const rows = [...list].sort((a, b) => a.day - b.day || minutes(a.start) - minutes(b.start));
-		for (const activity of rows) {
-			let line = `  ${DAY_ABBR[activity.day]}  ${activity.start}-${activity.end}  ${activity.name}`;
-			if (activity.where) line += `  @ ${activity.where}`;
-			if (activity.driver) line += `  / ${activity.driver}`;
-			if (activity.lead || activity.back) {
-				line += `  ~${activity.lead || ''}${activity.back ? `/${activity.back}` : ''}`;
-			}
-			lines.push(line);
-		}
-		lines.push('');
-	}
-
-	return `${lines.join('\n').trimEnd()}\n`;
 }

@@ -25,22 +25,13 @@
 </script>
 
 <div
-	class="travel absolute flex items-center gap-[3px] overflow-hidden pr-[7px] pl-[9px]"
+	class="travel absolute flex items-center overflow-hidden pr-[7px] pl-[10px]"
 	class:tja={direction === 'tja'}
 	class:nazaj={direction === 'nazaj'}
 	style="--c:{color}; --top:{top}; --height:{span}; --track:{track}; --tracks:{tracks}"
 	title={direction === 'tja' ? `Odhod ob ${clock(edge)}` : `Doma ob ${clock(edge)}`}
 >
 	{#if room >= 12}
-		<svg viewBox="0 0 16 10" class="icon" aria-hidden="true">
-			<!-- avto: streha, karoserija in dve kolesi -->
-			<path
-				d="M2.4 6.2 L3.4 3.6 Q3.6 3 4.3 3 H9.4 Q10 3 10.4 3.5 L12 5.6 H13.2 Q14 5.6 14 6.4 V7 H2 V6.8 Q2 6.2 2.4 6.2 Z"
-				fill="currentColor"
-			/>
-			<circle cx="5" cy="7.4" r="1.3" fill="currentColor" />
-			<circle cx="11.4" cy="7.4" r="1.3" fill="currentColor" />
-		</svg>
 		<span class="truncate font-mono text-[9.5px] leading-none font-medium">{clock(edge)}</span>
 	{/if}
 </div>
@@ -69,16 +60,5 @@
 	.nazaj {
 		border-top: 0;
 		border-radius: 0 0 2px 2px;
-	}
-
-	.icon {
-		width: 13px;
-		height: 8px;
-		flex: none;
-	}
-
-	/* Nazaj grede avto pelje v drugo smer. */
-	.nazaj .icon {
-		transform: scaleX(-1);
 	}
 </style>

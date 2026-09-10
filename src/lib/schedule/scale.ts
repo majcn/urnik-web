@@ -20,8 +20,8 @@ import { minutes } from './time';
  * blok na ~37 px in ura pod nazivom še ravno gre zraven (meja je 35 px v
  * ActivityBlock), pri 07:00–21:30 pa je ni več.
  */
-export const DAY_START = 7 * 60;
-export const DAY_END = 19 * 60;
+const DAY_START = 7 * 60;
+const DAY_END = 19 * 60;
 /** Korak črtovja; vsaka druga črta je polna ura. */
 const STEP = 30;
 
@@ -30,12 +30,12 @@ const STEP = 30;
  * Na tisku sta glava in legenda skriti, zato je na voljo skoraj cel list.
  * Izmerjeno: pri 690 se stran še ravno izide, pri 695 pade na dve.
  */
-export const TARGET_HEIGHT = 685;
+const TARGET_HEIGHT = 685;
 /** Strop, da urnik z eno samo uro ne zraste v en sam ogromen blok. */
-export const MAX_PPM = 4;
+const MAX_PPM = 4;
 const MIN_PPM = 0.4;
 
-export interface ScaleRow {
+interface ScaleRow {
 	/** Absolutna minuta dneva, na kateri leži črta. */
 	minute: number;
 	offset: number;
@@ -45,8 +45,6 @@ export interface ScaleRow {
 
 export interface Scale {
 	rows: ScaleRow[];
-	from: number;
-	to: number;
 	total: number;
 	/** Minuta dneva -> odmik na lestvici. */
 	at: (minute: number) => number;
@@ -67,7 +65,7 @@ export function buildScale(activities: Activity[]): Scale {
 		rows.push({ minute, offset: minute - from, major: minute % 60 === 0 });
 	}
 
-	return { rows, from, to, total: to - from, at: (minute) => minute - from };
+	return { rows, total: to - from, at: (minute) => minute - from };
 }
 
 export function pixelsPerMinute(total: number): number {

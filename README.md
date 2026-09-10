@@ -63,7 +63,6 @@ scripts/ics2txt.py    .ics -> data.txt, zunaj aplikacije
 src/lib/components/   izris
   Masthead, KidLegend                glava in legenda, samo na zaslonu
   WeekGrid > TimeGutter, DayColumn > ActivityBlock + TravelBlock
-  NotesPanel                         črtovje, ki zapolni kratek list
   DetailsPanel, ScheduleEditor       urejanje, samo na zaslonu
 ```
 
@@ -79,17 +78,18 @@ ga dev strežnik ob shranjevanju sam osveži. Ena vrstica na dejavnost:
 Nejc #C4562F:
   pon  08:20-09:05  SLJ
   sre  08:20-09:05  SLJ
-  pet  15:00-16:00  Nogomet  @ Igrišče  / oči  ~15/20
+  pet  15:00-16:00  Nogomet  @ Igrišče  / oči  ~14:40/16:20
 
 Nejc + Zala:
   tor  18:00-19:00  Gasilci
 ```
 
 Dnevi so `pon tor sre čet pet` (ali polna imena), en dan na vrstico.
-Neobvezno `@ kraj`, `/ kdo pelje` in minute poti: `~15` tja, `~15/20` tja in
-nazaj, `~/20` samo nazaj. Pot se izriše kot črtkan blok, prilepljen na
-dejavnost — nad njo z uro odhoda, pod njo z uro prihoda domov. Barva v glavi
-je neobvezna.
+Neobvezno `@ kraj`, `/ kdo pelje` in pot z `~`: ura odhoda, poševnica, ura
+prihoda domov (`~17:15/18:45`). Ena stran sme manjkati — `~17:15` ali `~/18:45`.
+Razlika do začetka oz. konca pokrije pot in morebitno čakanje, zato se ni treba
+nič računati. Pot se izriše kot črtkan blok, prilepljen na dejavnost: nad njo
+z uro odhoda, pod njo z uro prihoda domov. Barva v glavi je neobvezna.
 Vrstice, ki se začnejo z `#`, so opombe — skripta jih sama postavi kot
 glavo datoteke in kot ločila med dnevi.
 Pod mrežo je isto besedilo tudi v polju za hitre popravke, a se ob osvežitvi

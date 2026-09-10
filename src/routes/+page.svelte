@@ -1,7 +1,6 @@
 <script lang="ts">
 	import KidLegend from '$lib/components/KidLegend.svelte';
 	import Masthead from '$lib/components/Masthead.svelte';
-	import NotesPanel from '$lib/components/NotesPanel.svelte';
 	import ScheduleEditor from '$lib/components/ScheduleEditor.svelte';
 	import WeekGrid from '$lib/components/WeekGrid.svelte';
 	import { buildScale, pixelsPerMinute as ppmFor } from '$lib/schedule/scale';
@@ -10,10 +9,19 @@
 	import { ACTIVITY_FORMS, CHILD_FORMS, WEEKDAYS, plural } from '$lib/schedule/time';
 	import type { Schedule } from '$lib/schedule/types';
 
-	/** Črtovje pod mrežo je tu, da zapolni kratek list; gost teden ga zapolni sam. */
-	const NOTES_THRESHOLD = 430;
+	/* Napaka v data.txt ne sme podreti strani — mrežo pustimo prazno in povemo, kaj je narobe. */
+	function load(source: string): { schedule: Schedule; error: string } {
+		try {
+			return { schedule: parseText(source), error: '' };
+		} catch (problem) {
+			const error = problem instanceof Error ? problem.message : String(problem);
+			return { schedule: { kids: [], activities: [] }, error };
+		}
+	}
 
-	let schedule = $state<Schedule>(parseText(scheduleText));
+	const initial = load(scheduleText);
+	let schedule = $state<Schedule>(initial.schedule);
+	let loadError = $state(initial.error);
 	let text = $state(scheduleText);
 
 	const visible = $derived(
@@ -39,10 +47,13 @@
 
 	function onapply(parsed: Schedule) {
 		schedule = parsed;
+		loadError = '';
 	}
 
 	function onreset() {
-		schedule = parseText(scheduleText);
+		const fresh = load(scheduleText);
+		schedule = fresh.schedule;
+		loadError = fresh.error;
 		text = scheduleText;
 	}
 </script>
@@ -56,13 +67,17 @@
 		{stamp}
 	/>
 
+	{#if loadError}
+		<p
+			class="my-3 rounded-sm border border-dashed border-danger px-3 py-2 text-[13.5px] text-danger print:hidden"
+		>
+			Napaka v <code class="font-mono">data.txt</code> — {loadError}
+		</p>
+	{/if}
+
 	<KidLegend kids={schedule.kids} onprint={() => window.print()} />
 
 	<WeekGrid kids={schedule.kids} activities={visible} {scale} {pixelsPerMinute} />
-
-	{#if scale.total * pixelsPerMinute <= NOTES_THRESHOLD}
-		<NotesPanel />
-	{/if}
 
 	<ScheduleEditor bind:text {onapply} {onreset} />
 </div>

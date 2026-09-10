@@ -1,7 +1,6 @@
 /** Dnevi, ure in slovenske sklanjatve. */
 
 export const DAY_LABELS = ['Ponedeljek', 'Torek', 'Sreda', 'Četrtek', 'Petek'] as const;
-export const DAY_ABBR = ['pon', 'tor', 'sre', 'čet', 'pet'] as const;
 const DAY_FULL = ['ponedeljek', 'torek', 'sreda', 'cetrtek', 'petek'] as const;
 
 export const WEEKDAYS = DAY_LABELS.length;
@@ -36,7 +35,7 @@ export function slugify(value: string): string {
 }
 
 /** Slovenska števila: 1 / 2 / 3–4 / 5+ */
-export type PluralForms = readonly [string, string, string, string];
+type PluralForms = readonly [string, string, string, string];
 
 export function plural(count: number, forms: PluralForms): string {
 	const rest = count % 100;
