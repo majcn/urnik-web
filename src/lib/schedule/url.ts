@@ -2,10 +2,7 @@
  * Urnik potuje v naslovu strani, stisnjen z lz-string. Stran je s tem brez
  * strežnika in brez shrambe: povezava je celotno stanje, zaznamek pa arhiv.
  */
-// lz-string je CommonJS, zato privzeti uvoz — imenovani na strežniku odpovejo.
-import lzString from 'lz-string';
-
-const { compressToEncodedURIComponent, decompressFromEncodedURIComponent } = lzString;
+import { compressToEncodedURIComponent, decompressFromEncodedURIComponent } from 'lz-string';
 
 export const PARAM = 'u';
 
