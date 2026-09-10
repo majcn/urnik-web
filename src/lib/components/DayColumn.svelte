@@ -17,6 +17,7 @@
 
 	/** Robova mreže že narišeta okvir in glava, zato ju preskočimo. */
 	const inner = $derived(scale.rows.filter((row) => row.offset > 0 && row.offset < scale.total));
+	const front = $derived(items.filter((placed) => !placed.background));
 	const colorsOf = (ids: string[]) => ids.map((id) => colors.get(id) ?? FALLBACK_COLOR);
 </script>
 
@@ -35,8 +36,40 @@
 		></div>
 	{/each}
 
-	<!-- Poti gredo v svoj prehod, da dejavnosti vedno pokrijejo črtkane obrise. -->
-	{#each items.filter((placed) => placed.activity.lead) as placed (placed.activity.name + placed.start)}
+	<!--
+		Vrstni red risanja je hkrati globina: najprej odrasli iz ozadja, nato poti
+		otrok, nazadnje njihove dejavnosti. Tako otroci nikoli ne izginejo pod
+		blokom, ki je na listu le za vednost.
+	-->
+	{#each items.filter((placed) => placed.background) as placed (placed.activity.name + placed.start)}
+		{#if placed.activity.lead}
+			<TravelBlock
+				{placed}
+				direction="tja"
+				colors={colorsOf(placed.activity.kids)}
+				{pixelsPerMinute}
+				at={scale.at}
+			/>
+		{/if}
+		{#if placed.activity.back}
+			<TravelBlock
+				{placed}
+				direction="nazaj"
+				colors={colorsOf(placed.activity.kids)}
+				{pixelsPerMinute}
+				at={scale.at}
+			/>
+		{/if}
+		<ActivityBlock
+			{placed}
+			top={scale.at(placed.start)}
+			height={placed.end - placed.start}
+			colors={colorsOf(placed.activity.kids)}
+			{pixelsPerMinute}
+		/>
+	{/each}
+
+	{#each front.filter((placed) => placed.activity.lead) as placed (placed.activity.name + placed.start)}
 		<TravelBlock
 			{placed}
 			direction="tja"
@@ -45,7 +78,7 @@
 			at={scale.at}
 		/>
 	{/each}
-	{#each items.filter((placed) => placed.activity.back) as placed (placed.activity.name + placed.end)}
+	{#each front.filter((placed) => placed.activity.back) as placed (placed.activity.name + placed.end)}
 		<TravelBlock
 			{placed}
 			direction="nazaj"
@@ -55,7 +88,7 @@
 		/>
 	{/each}
 
-	{#each items as placed (placed.activity.name + placed.start + placed.track)}
+	{#each front as placed (placed.activity.name + placed.start + placed.track)}
 		<ActivityBlock
 			{placed}
 			top={scale.at(placed.start)}

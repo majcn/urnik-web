@@ -5,6 +5,11 @@ export interface Kid {
 	name: string;
 	note?: string;
 	color: string;
+	/**
+	 * Odrasli, ki so na listu samo za vednost: brez svojega pasu, čez vso širino
+	 * in pod otroki. Organizacija teče po otrocih, zato ti ne smejo tekmovati z njimi.
+	 */
+	background?: boolean;
 }
 
 export interface Activity {

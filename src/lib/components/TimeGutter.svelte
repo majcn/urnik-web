@@ -16,7 +16,7 @@
 <div class="relative" style="--ppm:{pixelsPerMinute}">
 	{#each labelled as row (row.minute)}
 		<div
-			class="hour absolute right-[9px] font-mono text-[10.5px] leading-none font-medium text-muted tabular-nums"
+			class="hour absolute right-[9px] font-mono text-meta leading-none font-medium text-muted tabular-nums"
 			class:top-edge={row.offset === 0}
 			style="--top:{row.offset}"
 		>

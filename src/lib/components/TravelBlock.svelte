@@ -25,31 +25,32 @@
 </script>
 
 <div
-	class="travel absolute flex items-center overflow-hidden pr-[7px] pl-[10px]"
+	class="travel slot flex items-center overflow-hidden pr-[7px] pl-[10px]"
 	class:tja={direction === 'tja'}
 	class:nazaj={direction === 'nazaj'}
+	class:behind={placed.background}
 	style="--c:{color}; --top:{top}; --height:{span}; --track:{track}; --tracks:{tracks}"
 	title={direction === 'tja' ? `Odhod ob ${clock(edge)}` : `Doma ob ${clock(edge)}`}
 >
 	{#if room >= 12}
-		<span class="truncate font-mono text-[9.5px] leading-none font-medium">{clock(edge)}</span>
+		<span class="truncate font-mono text-tiny leading-none font-medium">{clock(edge)}</span>
 	{/if}
 </div>
 
 <style>
 	/*
-	 * Pot: isti stolpec in širina kot dejavnost, a le črtkan obris brez polnila.
-	 * Brez skrčka in brez roba na strani dejavnosti, da sta bloka videti kot en lik.
+	 * Pot: le črtkan obris brez polnila. Za razliko od dejavnosti brez reže in
+	 * brez roba na njeni strani, da sta bloka videti kot en lik.
 	 */
 	.travel {
-		position: absolute;
-		top: calc(var(--top) * var(--ppm) * 1px);
-		height: calc(var(--height) * var(--ppm) * 1px);
-		left: calc(var(--track) / var(--tracks) * 100% + 2px);
-		width: calc(100% / var(--tracks) - 4px);
 		border: 1px dashed color-mix(in oklab, var(--c) 60%, #fff);
 		color: color-mix(in oklab, var(--c) 80%, #fff);
 		background: none;
+	}
+
+	.behind {
+		border-color: color-mix(in oklab, var(--c) 32%, #fff);
+		color: var(--color-muted);
 	}
 
 	.tja {

@@ -18,7 +18,10 @@
 	const colors = $derived(new Map(kids.map((kid) => [kid.id, kid.color])));
 	const days = $derived(
 		Array.from({ length: WEEKDAYS }, (_, day) =>
-			packDay(activities.filter((activity) => activity.day === day))
+			packDay(
+				activities.filter((activity) => activity.day === day),
+				kids
+			)
 		)
 	);
 	const height = $derived(`${scale.total * pixelsPerMinute}px`);
@@ -29,7 +32,7 @@
 		<div class="grid grid-cols-[56px_repeat(5,1fr)] border-b border-rule-strong">
 			<div></div>
 			{#each DAY_LABELS as label (label)}
-				<div class="border-l border-rule px-[9px] py-2 text-[12.5px] leading-none font-semibold">
+				<div class="border-l border-rule px-[9px] py-2 text-body leading-none font-semibold">
 					{label}
 				</div>
 			{/each}

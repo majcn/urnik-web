@@ -82,6 +82,9 @@ Nejc #C4562F:
 
 Nejc + Zala:
   tor  18:00-19:00  Gasilci
+
+Eva #13F2E7 (ozadje):
+  pon  19:30-20:30  Telovadba  @ Ljubelj  ~19:00/21:00
 ```
 
 Dnevi so `pon tor sre čet pet` (ali polna imena), en dan na vrstico.
@@ -92,6 +95,11 @@ nič računati. Pot se izriše kot črtkan blok, prilepljen na dejavnost: nad nj
 z uro odhoda, pod njo z uro prihoda domov. Barva v glavi je neobvezna.
 Vrstice, ki se začnejo z `#`, so opombe — skripta jih sama postavi kot
 glavo datoteke in kot ločila med dnevi.
+
+Vsak otrok ima svoj stalni pas v stolpcu dneva — pri dveh otrocih levo in desno
+polovico —, tudi kadar je sosednji prazen. Glava z `(ozadje)` pa označi odraslega:
+ta nima svojega pasu, riše se čez vso širino in pod otroki, bledo in brez
+poudarka. Na listu je le za vednost, organizacija teče po otrocih.
 Pod mrežo je isto besedilo tudi v polju za hitre popravke, a se ob osvežitvi
 strani vrne na `data.txt`.
 

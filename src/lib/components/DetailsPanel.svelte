@@ -15,7 +15,7 @@
 		{title}
 	</summary>
 	{#if help}
-		<p class="max-w-[70ch] text-[13.5px] text-muted">{@render help()}</p>
+		<p class="max-w-[70ch] text-block text-muted">{@render help()}</p>
 	{/if}
 	{@render children()}
 </details>

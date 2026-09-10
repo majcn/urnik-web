@@ -4,7 +4,7 @@
  * Mreža vedno pokriva 07:00–19:00. Če kakšna dejavnost pade izven tega okna,
  * se okno razširi do prve pol ure, da se nič ne izgubi.
  */
-import type { Activity } from './types';
+import type { Activity, Kid } from './types';
 import { minutes } from './time';
 
 /**
@@ -76,20 +76,60 @@ export interface PlacedActivity {
 	activity: Activity;
 	start: number;
 	end: number;
+	/** Odrasli iz ozadja se rišejo prvi in čez vso širino. */
+	background: boolean;
 	/** Stolpec znotraj dneva in koliko stolpcev si delijo prostor. */
 	track: number;
 	tracks: number;
 }
 
-/** Prekrivajoče se dejavnosti postavi eno ob drugo znotraj enega dneva. */
-export function packDay(activities: Activity[]): PlacedActivity[] {
+/**
+ * Vsak otrok ima svoj stalni pas čez cel teden, tudi kadar je sosednji prazen —
+ * tako je na prvi pogled jasno, čigav je blok, brez preverjanja barve.
+ * Skupne dejavnosti gredo čez vse pasove, znotraj pasu pa se prekrivanja
+ * razdelijo naprej.
+ */
+export function packDay(activities: Activity[], kids: Kid[]): PlacedActivity[] {
+	const behind = new Set(kids.filter((kid) => kid.background).map((kid) => kid.id));
+	const laneKids = kids.filter((kid) => !kid.background);
+	const lanes = Math.max(1, laneKids.length);
+	const placed: PlacedActivity[] = [];
+
+	const isBehind = (activity: Activity) => activity.kids.every((id) => behind.has(id));
+	for (const item of packOverlaps(activities.filter(isBehind))) {
+		placed.push({ ...item, background: true });
+	}
+
+	const own = activities.filter((activity) => !isBehind(activity));
+	placed.push(...packOverlaps(own.filter((activity) => activity.kids.length !== 1)));
+
+	laneKids.forEach((kid, lane) => {
+		const mine = own.filter(
+			(activity) => activity.kids.length === 1 && activity.kids[0] === kid.id
+		);
+		for (const item of packOverlaps(mine)) {
+			// Pas in delitev znotraj pasu zložimo v en ulomek: track / tracks.
+			placed.push({
+				...item,
+				track: lane * item.tracks + item.track,
+				tracks: lanes * item.tracks
+			});
+		}
+	});
+
+	return placed;
+}
+
+/** Prekrivajoče se dejavnosti postavi eno ob drugo. */
+function packOverlaps(activities: Activity[]): PlacedActivity[] {
 	const sorted = activities
 		.map((activity) => ({
 			activity,
 			start: minutes(activity.start),
 			end: minutes(activity.end),
 			track: 0,
-			tracks: 1
+			tracks: 1,
+			background: false
 		}))
 		.sort((a, b) => a.start - b.start || b.end - a.end);
 

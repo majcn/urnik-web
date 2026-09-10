@@ -69,7 +69,7 @@
 
 	{#if loadError}
 		<p
-			class="my-3 rounded-sm border border-dashed border-danger px-3 py-2 text-[13.5px] text-danger print:hidden"
+			class="my-3 rounded-sm border border-dashed border-danger px-3 py-2 text-block text-danger print:hidden"
 		>
 			Napaka v <code class="font-mono">data.txt</code> — {loadError}
 		</p>

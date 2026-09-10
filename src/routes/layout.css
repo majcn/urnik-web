@@ -19,6 +19,22 @@
 	--font-display: 'Chivo', 'Arial Narrow', sans-serif;
 	--font-body: 'Source Sans 3', 'Segoe UI', system-ui, sans-serif;
 	--font-mono: 'IBM Plex Mono', ui-monospace, monospace;
+
+	/*
+	 * Stopnje pisave so izmerjene za tisk na A4 in se ponovijo v več komponentah;
+	 * kot žetoni ostanejo usklajene, namesto da bi vsaka nosila svojo vrednost.
+	 */
+	--text-title: 29px;
+	--text-block: 13.5px;
+	--text-lead: 13px;
+	--text-body: 12.5px;
+	--text-note: 11px;
+	--text-meta: 10.5px;
+	--text-tiny: 9.5px;
+
+	/* Enotna mera za gumbe. */
+	--spacing-btn-x: 18px;
+	--spacing-btn-y: 9px;
 }
 
 @layer base {
@@ -29,6 +45,19 @@
 		font-family: var(--font-body);
 		-webkit-font-smoothing: antialiased;
 	}
+}
+
+/*
+ * Blok na lestvici: lego in širino izračunamo iz --top/--height/--track/--tracks,
+ * ki jih komponenta postavi v `style`. Dejavnost in pot ju delita, zato calc
+ * živi tu in ne dvakrat v komponentah.
+ */
+@utility slot {
+	position: absolute;
+	top: calc(var(--top) * var(--ppm) * 1px);
+	left: calc(var(--track) / var(--tracks) * 100% + 2px);
+	width: calc(100% / var(--tracks) - 4px);
+	height: calc(var(--height) * var(--ppm) * 1px);
 }
 
 @utility label-caps {

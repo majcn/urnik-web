@@ -9,6 +9,9 @@
  *
  *   Nejc + Zala:
  *     tor  18:00-19:00  Gasilci
+ *
+ *   Eva #13F2E7 (ozadje):
+ *     pon  19:30-20:30  Telovadba
  */
 import { colorAt } from './palette';
 import { clock, dayIndex, deaccent, minutes, slugify } from './time';
@@ -16,6 +19,8 @@ import type { Activity, Kid, Schedule } from './types';
 
 const HEADER = /^(.*?)\s*:$/;
 const COLOR = /#[0-9a-fA-F]{3,8}/;
+/** Glava z "(ozadje)" pomeni odraslega: brez pasu, čez vso širino, pod otroki. */
+const BACKGROUND = /\(ozadje\)/i;
 const ROW = /^(\S+)\s+(\d{1,2})[:.](\d{2})\s*[-–—]\s*(\d{1,2})[:.](\d{2})\s+(.+)$/;
 /**
  * Pot za "~": ura odhoda, poševnica, ura prihoda domov. Ena stran sme
@@ -103,8 +108,10 @@ export function parseText(source: string): Schedule {
 		const header = line.match(HEADER);
 		if (header) {
 			const color = header[1].match(COLOR)?.[0] ?? null;
+			const background = BACKGROUND.test(header[1]);
 			const names = header[1]
 				.replace(COLOR, '')
+				.replace(BACKGROUND, '')
 				.split('+')
 				.map((part) => part.trim())
 				.filter(Boolean);
@@ -119,7 +126,12 @@ export function parseText(source: string): Schedule {
 					if (color) existing.color = color;
 					return existing.id;
 				}
-				const kid: Kid = { id: slugify(name), name, color: color ?? colorAt(kids.length) };
+				const kid: Kid = {
+					id: slugify(name),
+					name,
+					color: color ?? colorAt(kids.length),
+					background
+				};
 				kids.push(kid);
 				return kid.id;
 			});
