@@ -3,7 +3,6 @@
 export interface Person {
 	id: string;
 	name: string;
-	note?: string;
 	color: string;
 	/**
 	 * Odrasli, ki so na listu samo za vednost: brez svojega pasu, čez vso širino

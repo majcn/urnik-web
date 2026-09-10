@@ -13,6 +13,16 @@
 
 	let { placed, colors, at, pixelsPerMinute }: Props = $props();
 
+	/*
+	 * Izmerjene višine ene vrstice besedila in obrobe z odmiki. Iz njih izračunamo,
+	 * kaj gre v blok: najprej naziv, nato ura, nato kraj — in če po tem ostane
+	 * višina, dobi naziv še eno vrstico, namesto da bi ga odrezali.
+	 */
+	const CHROME = 6;
+	const LINE_NAME = 16;
+	const LINE_META = 12;
+	const MAX_NAME_LINES = 3;
+
 	const top = $derived(at(placed.start));
 	const height = $derived(placed.end - placed.start);
 
@@ -20,13 +30,35 @@
 	const color = $derived(colors[0] ?? FALLBACK_COLOR);
 	/** Koliko prostora blok res ima — od tega je odvisno, koliko vrstic gre vanj. */
 	const room = $derived(height * pixelsPerMinute);
-	/* Kolikšno višino porabi posamezna vrstica besedila, vključno z obrobo in odmiki. */
-	const NAME_ROW = 22;
-	const TEXT_ROW = 13;
-	/* Kraj in voznik v svoji vrstici: v skupni z uro ju je ozek pas vedno odrezal. */
-	const caption = $derived([activity.where, activity.driver].filter(Boolean).join(' · '));
-	/* Brez naziva se vse premakne za eno vrstico navzgor — pas ostane uporaben. */
-	const head = $derived(activity.name === '' ? 0 : NAME_ROW);
+	/** Blok čez cel stolpec prenese celoten razpon, polovični pa se odreže. */
+	const wide = $derived(placed.tracks === 1);
+
+	/*
+	 * Kraj v svoji vrstici. Voznik gre v črtkani pas poti, kjer je prostor tako
+	 * ali tako prazen — tu bi zasedel vrstico, ki jo potrebuje kraj. Če poti ni,
+	 * ostane tu, sicer bi izginil.
+	 */
+	const travels = $derived(Boolean(activity.lead || activity.back));
+	const caption = $derived(
+		[activity.where, travels ? '' : activity.driver].filter(Boolean).join(' · ')
+	);
+
+	const named = $derived(activity.name !== '');
+	const firstLine = $derived(CHROME + (named ? LINE_NAME : 0));
+	const showTime = $derived(room >= firstLine + LINE_META);
+	const showPlace = $derived(Boolean(caption) && room >= firstLine + 2 * LINE_META);
+	/** Preostala višina gre nazivu, da se dolgi prelomijo namesto odrežejo. */
+	const nameLines = $derived(
+		Math.max(
+			1,
+			Math.min(
+				MAX_NAME_LINES,
+				Math.floor(
+					(room - CHROME - (showTime ? LINE_META : 0) - (showPlace ? LINE_META : 0)) / LINE_NAME
+				)
+			)
+		)
+	);
 </script>
 
 <div
@@ -37,20 +69,42 @@
 	style="--c:{color}; --top:{top}; --height:{height}; --track:{track}; --tracks:{tracks}"
 >
 	<span class="stripe absolute inset-y-0 left-0 w-[5px]" style:background={stripe(colors)}></span>
-	{#if activity.name !== ''}
-		<span class="name truncate text-block leading-[1.15] font-semibold">{activity.name}</span>
+	{#if named}
+		<span class="name text-block leading-[1.15] font-semibold" style="--lines:{nameLines}">
+			{activity.name}
+		</span>
 	{/if}
-	{#if room >= head + TEXT_ROW}
+	{#if showPlace}
 		<span class="truncate font-mono text-meta leading-[1.1] text-muted tabular-nums">
 			{activity.start}–{activity.end}
 		</span>
-	{/if}
-	{#if room >= head + 2 * TEXT_ROW && caption}
 		<span class="truncate text-note leading-[1.1] text-muted">{caption}</span>
+	{:else if showTime}
+		<!--
+			Za dve vrstici je premalo prostora za oboje, zato gre kraj k uri. V ozkem
+			pasu izpustimo še konec — pove ga že višina bloka —, sicer bi se odrezal kraj.
+		-->
+		<span class="truncate font-mono text-tiny leading-[1.1] text-muted tabular-nums">
+			{#if !caption}
+				{activity.start}–{activity.end}
+			{:else if wide}
+				{activity.start}–{activity.end} · {caption}
+			{:else}
+				{activity.start} · {caption}
+			{/if}
+		</span>
 	{/if}
 </div>
 
 <style>
+	.name {
+		display: -webkit-box;
+		-webkit-box-orient: vertical;
+		-webkit-line-clamp: var(--lines);
+		line-clamp: var(--lines);
+		overflow: hidden;
+	}
+
 	/* Barva bloka je barva osebe, zato je tudi to calc ob izrisu, ne utility. */
 	.placed {
 		/* Reža pod blokom loči zaporedni dejavnosti. */

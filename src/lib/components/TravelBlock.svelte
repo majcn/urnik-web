@@ -22,18 +22,27 @@
 	const edge = $derived(direction === 'tja' ? placed.start - span : placed.end + span);
 	const top = $derived(direction === 'tja' ? at(placed.start - span) : at(placed.end));
 	const room = $derived(span * pixelsPerMinute);
+	/* Voznik spada k vožnji, ne k dejavnosti — tam bi jedel vrstico za kraj. */
+	const driver = $derived(activity.driver ?? '');
+	/*
+	 * Najnižji pas, v katerega gre besedilo. 15-minutna pot je pri A4 visoka
+	 * ~12 px, zato mora biti meja pod tem — sicer voznik tam sploh ne pride do izraza.
+	 */
+	const MIN_ROOM = 10;
 </script>
 
 <div
-	class="travel slot flex items-center overflow-hidden pr-[7px] pl-[10px]"
+	class="travel slot flex items-center overflow-hidden pr-[7px] pl-[9px]"
 	class:tja={direction === 'tja'}
 	class:nazaj={direction === 'nazaj'}
 	class:behind={placed.background}
 	style="--c:{color}; --top:{top}; --height:{span}; --track:{track}; --tracks:{tracks}"
 	title={direction === 'tja' ? `Odhod ob ${clock(edge)}` : `Doma ob ${clock(edge)}`}
 >
-	{#if room >= 12}
-		<span class="truncate font-mono text-tiny leading-none font-medium">{clock(edge)}</span>
+	{#if room >= MIN_ROOM}
+		<span class="truncate font-mono text-tiny leading-none font-medium">
+			{clock(edge)}{driver ? ` · ${driver}` : ''}
+		</span>
 	{/if}
 </div>
 

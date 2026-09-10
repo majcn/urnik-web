@@ -29,6 +29,9 @@ HEADER = """\
 #
 #   dan  ura-ura  naziv  [@ kraj]  [/ kdo pelje]  [~pot]
 #
+# Kdo pelje se izpiše v črtkanem pasu poti, skupaj z avtom in uro; če poti ni,
+# stoji pri kraju.
+#
 # Dnevi so pon tor sre čet pet (ali polna imena), en dan na vrstico. Rep za uro
 # je neobvezen in sme priti v poljubnem vrstnem redu; tudi naziv sme izostati:
 #   pon  08:00-16:00              sam pas, brez napisa
