@@ -26,11 +26,18 @@ const DAY_END = 19 * 60;
 export const STEP = 30;
 
 /**
- * Ciljna višina mreže v pikslih: kar ostane od strani A4 ležeče, ko odštejemo rob.
- * Na tisku sta glava in legenda skriti, zato je na voljo skoraj cel list.
- * Izmerjeno: pri 690 se stran še ravno izide, pri 695 pade na dve.
+ * Ciljna višina mreže v pikslih. Na tisku sta glava in legenda skriti, zato je
+ * na voljo skoraj cel list.
+ *
+ * A4 je en list ležeče. A3V je pokončni A3 iz dveh ležečih A4, zloženih po
+ * višini — od tod dvojna višina. A3H je ležeči A3 iz dveh pokončnih A4 drug ob
+ * drugem — tam je na voljo višina pokončnega lista, širina pa dvojna.
+ *
+ * Izmerjeno: A4 se izide pri 670 in pade pri 680; A3V ostane na dveh straneh pri
+ * 1400 in pade pri 1420; A3H ostane na dveh pri 1020 in pade pri 1030.
  */
-const TARGET_HEIGHT = 685;
+export const SHEET = { A4: 665, A3V: 1370, A3H: 990 } as const;
+export type Sheet = keyof typeof SHEET;
 /** Strop, da urnik z eno samo uro ne zraste v en sam ogromen blok. */
 const MAX_PPM = 4;
 const MIN_PPM = 0.4;
@@ -85,8 +92,8 @@ export function buildScale(
 	return { rows, total: to - from, at: (minute) => minute - from };
 }
 
-export function pixelsPerMinute(total: number): number {
-	return Math.max(MIN_PPM, Math.min(MAX_PPM, TARGET_HEIGHT / (total || TARGET_HEIGHT)));
+export function pixelsPerMinute(total: number, target: number = SHEET.A4): number {
+	return Math.max(MIN_PPM, Math.min(MAX_PPM, target / (total || target)));
 }
 
 export interface PlacedActivity {

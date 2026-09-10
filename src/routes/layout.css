@@ -37,6 +37,17 @@
 	--spacing-btn-y: 9px;
 }
 
+/*
+ * Širina stolpca dneva in ure. Na zaslonu se raztegneta čez okno, na tisku pa
+ * sta v milimetrih — pri A3 morata biti na obeh listih enaki, sicer se po
+ * lepljenju stolpci ne ujamejo.
+ */
+:root {
+	--day: minmax(0, 1fr);
+	--gutter: 56px;
+	--notes: minmax(0, 1fr);
+}
+
 @layer base {
 	body {
 		margin: 0;
@@ -76,8 +87,26 @@
 		margin: 9mm;
 	}
 
-	body {
-		background: #fff;
+	/* A3 ležeče = dva pokončna A4 eden ob drugem; oba lista sta polna do roba,
+	   zato je rob papirja hkrati mesto stika — rezalnih črt ni treba risati. */
+	@page a3h {
+		size: A4 portrait;
+		margin: 9mm;
+	}
+
+	.sheet-a3h {
+		page: a3h;
+		--day: 59mm;
+		--gutter: 15mm;
+		--notes: 74mm;
+	}
+
+	.sheet-a3h .left-sheet {
+		break-after: page;
+	}
+
+	.sheet-a3h .sheet {
+		overflow: visible;
 	}
 
 	/* Barvni podlivi blokov in stolpcev morajo preživeti tisk. */

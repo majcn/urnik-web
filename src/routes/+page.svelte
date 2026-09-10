@@ -1,10 +1,16 @@
 <script lang="ts">
-	import PersonLegend from '$lib/components/PersonLegend.svelte';
 	import Masthead from '$lib/components/Masthead.svelte';
 	import TimeRange from '$lib/components/TimeRange.svelte';
+	import TopBar from '$lib/components/TopBar.svelte';
 	import ScheduleEditor from '$lib/components/ScheduleEditor.svelte';
 	import WeekGrid from '$lib/components/WeekGrid.svelte';
-	import { buildScale, naturalWindow, pixelsPerMinute as ppmFor } from '$lib/schedule/scale';
+	import {
+		buildScale,
+		naturalWindow,
+		pixelsPerMinute as ppmFor,
+		SHEET,
+		type Sheet
+	} from '$lib/schedule/scale';
 	import scheduleText from '$lib/data.txt?raw';
 	import { parseText } from '$lib/schedule/text';
 	import {
@@ -34,6 +40,8 @@
 	/** Uri, med katerima nas list zanima; prazno pomeni brez omejitve. */
 	let showFrom = $state('');
 	let showTo = $state('');
+	/** A3 je isti list, le dvakrat višji — natisne se na dva A4 in zlepi. */
+	let sheet = $state<Sheet>('A4');
 	/** Osebe, ki so odklikane v legendi — z lista izginejo skupaj s svojim pasom. */
 	let hidden = $state<string[]>([]);
 
@@ -85,14 +93,16 @@
 			.map(clip)
 	);
 	const scale = $derived(buildScale(visible, from < 0 ? undefined : from, to < 0 ? undefined : to));
-	const pixelsPerMinute = $derived(ppmFor(scale.total));
+	const pixelsPerMinute = $derived(ppmFor(scale.total, SHEET[sheet]));
 
 	const stamp = $derived.by(() => {
 		const omitted = schedule.activities.length - visible.length;
 		const counts =
 			`${visible.length} ${plural(visible.length, ACTIVITY_FORMS)} · ` +
 			`${people.length} ${plural(people.length, PERSON_FORMS)}`;
-		return [counts, omitted > 0 ? `${omitted} zunaj izbora` : 'pon–pet · A4 ležeče'];
+		const paper =
+			sheet === 'A4' ? 'A4 ležeče' : `${sheet === 'A3V' ? 'A3 pokončno' : 'A3 ležeče'} · dva lista`;
+		return [counts, omitted > 0 ? `${omitted} zunaj izbora · ${paper}` : `pon–pet · ${paper}`];
 	});
 
 	function onapply(parsed: Schedule) {
@@ -112,7 +122,11 @@
 
 <svelte:head><title>Urnik</title></svelte:head>
 
-<div class="mx-auto max-w-[1180px] px-[22px] pt-[26px] pb-12 print:max-w-none print:p-0">
+<div
+	class="mx-auto max-w-[1180px] px-[22px] pt-[26px] pb-12 print:max-w-none print:p-0"
+	class:sheet-a3v={sheet === 'A3V'}
+	class:sheet-a3h={sheet === 'A3H'}
+>
 	<Masthead {stamp} />
 
 	{#if loadError}
@@ -123,16 +137,35 @@
 		</p>
 	{/if}
 
-	<PersonLegend
+	<TopBar
 		people={schedule.people}
 		{hidden}
+		bind:sheet
 		ontoggle={(id) =>
 			(hidden = hidden.includes(id) ? hidden.filter((x) => x !== id) : [...hidden, id])}
 		onprint={() => window.print()}
 	/>
 	<TimeRange bind:from={showFrom} bind:to={showTo} {bounds} />
 
-	<WeekGrid {people} activities={visible} {scale} {pixelsPerMinute} />
+	{#if sheet === 'A3H'}
+		<!-- Levi list nosi uro in pon–sre, desni čet–pet in prostor za zapiske. -->
+		<div class="left-sheet">
+			<WeekGrid {people} activities={visible} {scale} {pixelsPerMinute} days={[0, 1, 2]} />
+		</div>
+		<div class="mt-4 print:mt-0">
+			<WeekGrid
+				{people}
+				activities={visible}
+				{scale}
+				{pixelsPerMinute}
+				days={[3, 4]}
+				gutter={false}
+				notes
+			/>
+		</div>
+	{:else}
+		<WeekGrid {people} activities={visible} {scale} {pixelsPerMinute} days={[0, 1, 2, 3, 4]} />
+	{/if}
 
 	<ScheduleEditor bind:text {onapply} {onreset} />
 </div>
