@@ -51,13 +51,14 @@ ves list; če kakšna dejavnost pade izven tega okna, se okno razširi.
 ### Zgradba
 
 ```
-src/lib/data.txt      urnik — edini vir podatkov, ureja se na roko
+src/lib/data.example.txt  vzorec, ki se naloži brez parametra v naslovu
 src/lib/schedule/     čista logika, brez DOM — se da testirati sama zase
   types.ts            Kid, Activity, Schedule
   time.ts             ure, dnevi, slovenske sklanjatve
   palette.ts          barve otrok in deljeni barvni rob
   scale.ts            navpična lestvica 07:00–19:00 in razporeditev prekrivanj
-  text.ts             razčlenjevalnik in izpis besedilne oblike urnika
+  text.ts             razčlenjevalnik besedilne oblike urnika
+  url.ts              stiskanje urnika v naslov in nazaj
 scripts/ics2txt.py    .ics -> data.txt, zunaj aplikacije
 
 src/lib/components/   izris
@@ -71,8 +72,11 @@ Barve in pisave so v `src/routes/layout.css` (Tailwind `@theme`), tam je tudi `@
 
 ### Vnos podatkov
 
-Urnik živi v `src/lib/data.txt` in se v stran uvozi kot besedilo (`?raw`), zato
-ga dev strežnik ob shranjevanju sam osveži. Ena vrstica na dejavnost:
+Urnik živi v naslovu strani, stisnjen z `lz-string` (parameter `u`). Stran je
+zato brez strežnika in brez shrambe — povezava je celotno stanje, zaznamek pa
+arhiv. Brez parametra se naloži `src/lib/data.example.txt`. Uredi besedilo v
+polju pod mrežo in pritisni Uporabi; naslov se posodobi. Ena vrstica na
+dejavnost:
 
 ```
 Nejc #C4562F:
@@ -108,7 +112,7 @@ strani vrne na `data.txt`.
 Izvoženih `.ics` aplikacija ne bere — pretvori jih skripta:
 
 ```sh
-./scripts/ics2txt.py Nejc.ics Zala.ics -o src/lib/data.txt
+./scripts/ics2txt.py Nejc.ics Zala.ics      # izpis prilepiš v polje na strani
 ./scripts/ics2txt.py *.ics --from 13:00        # samo popoldne, brez pouka
 ```
 

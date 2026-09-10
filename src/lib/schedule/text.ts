@@ -183,3 +183,41 @@ export function parseText(source: string): Schedule {
 	activities.sort((a, b) => a.day - b.day || minutes(a.start) - minutes(b.start));
 	return { people, activities };
 }
+
+/**
+ * Zamenja barvo ene osebe kar v besedilu — to je vir resnice, iz katerega se
+ * sestavi naslov. Prime se le glave z enim samim imenom; skupna glava velja za
+ * obe osebi in bi jima barvo pobrisala hkrati.
+ */
+export function setPersonColor(source: string, name: string, color: string): string {
+	const wanted = deaccent(name);
+	let done = false;
+
+	return source
+		.split('\n')
+		.map((line) => {
+			if (done) return line;
+			const trimmed = line.trim();
+			if (trimmed === '' || trimmed.startsWith('#')) return line;
+
+			const header = trimmed.match(HEADER);
+			if (!header) return line;
+
+			const spec = header[1];
+			const names = spec
+				.replace(COLOR, '')
+				.replace(BACKGROUND, '')
+				.split('+')
+				.map((part) => part.trim())
+				.filter(Boolean);
+			if (names.length !== 1 || deaccent(names[0]) !== wanted) return line;
+
+			done = true;
+			if (COLOR.test(spec)) return line.replace(COLOR, color);
+
+			const indent = line.slice(0, line.length - line.trimStart().length);
+			const background = BACKGROUND.test(spec) ? ' (ozadje)' : '';
+			return `${indent}${names[0]} ${color}${background}:`;
+		})
+		.join('\n');
+}

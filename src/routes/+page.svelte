@@ -11,8 +11,12 @@
 		SHEET,
 		type Sheet
 	} from '$lib/schedule/scale';
-	import scheduleText from '$lib/data.txt?raw';
-	import { parseText } from '$lib/schedule/text';
+	import { browser } from '$app/environment';
+	import { replaceState } from '$app/navigation';
+	import { page } from '$app/state';
+	import example from '$lib/data.example.txt?raw';
+	import { readUrl, writeUrl } from '$lib/schedule/url';
+	import { parseText, setPersonColor } from '$lib/schedule/text';
 	import {
 		ACTIVITY_FORMS,
 		PERSON_FORMS,
@@ -23,7 +27,7 @@
 	} from '$lib/schedule/time';
 	import type { Activity, Schedule } from '$lib/schedule/types';
 
-	/* Napaka v data.txt ne sme podreti strani — mrežo pustimo prazno in povemo, kaj je narobe. */
+	/* Napaka v urniku ne sme podreti strani — mrežo pustimo prazno in povemo, kaj je narobe. */
 	function load(source: string): { schedule: Schedule; error: string } {
 		try {
 			return { schedule: parseText(source), error: '' };
@@ -33,10 +37,12 @@
 		}
 	}
 
-	const initial = load(scheduleText);
+	/* Urnik pride iz naslova; brez njega pokažemo vzorec, da stran ni prazna. */
+	const initialText = readUrl(page.url) ?? example;
+	const initial = load(initialText);
 	let schedule = $state<Schedule>(initial.schedule);
 	let loadError = $state(initial.error);
-	let text = $state(scheduleText);
+	let text = $state(initialText);
 	/** Uri, med katerima nas list zanima; prazno pomeni brez omejitve. */
 	let showFrom = $state('');
 	let showTo = $state('');
@@ -105,18 +111,37 @@
 		return [counts, omitted > 0 ? `${omitted} zunaj izbora · ${paper}` : `pon–pet · ${paper}`];
 	});
 
-	function onapply(parsed: Schedule) {
-		schedule = parsed;
-		hidden = [];
+	/** Naslov je edino stanje, zato ga posodobimo šele, ko se urnik razčleni. */
+	function apply(next: string) {
+		const fresh = load(next);
+		if (fresh.error !== '') {
+			loadError = fresh.error;
+			return;
+		}
+		text = next;
+		schedule = fresh.schedule;
 		loadError = '';
+		if (browser) replaceState(writeUrl(next === example ? '' : next), {});
+	}
+
+	function onapply() {
+		apply(text);
+	}
+
+	/** Barva se zapiše nazaj v besedilo, ker je to vir, iz katerega gre v naslov. */
+	function onrecolor(id: string, color: string) {
+		const person = schedule.people.find((candidate) => candidate.id === id);
+		if (!person) return;
+		apply(setPersonColor(text, person.name, color));
 	}
 
 	function onreset() {
-		const fresh = load(scheduleText);
+		const fresh = load(example);
 		schedule = fresh.schedule;
 		loadError = fresh.error;
 		hidden = [];
-		text = scheduleText;
+		text = example;
+		if (browser) replaceState(writeUrl(''), {});
 	}
 </script>
 
@@ -133,7 +158,7 @@
 		<p
 			class="my-3 rounded-sm border border-dashed border-danger px-3 py-2 text-block text-danger print:hidden"
 		>
-			Napaka v <code class="font-mono">data.txt</code> — {loadError}
+			Napaka v urniku — {loadError}
 		</p>
 	{/if}
 
@@ -143,6 +168,7 @@
 		bind:sheet
 		ontoggle={(id) =>
 			(hidden = hidden.includes(id) ? hidden.filter((x) => x !== id) : [...hidden, id])}
+		{onrecolor}
 		onprint={() => window.print()}
 	/>
 	<TimeRange bind:from={showFrom} bind:to={showTo} {bounds} />

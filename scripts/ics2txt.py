@@ -5,8 +5,10 @@ Ime datoteke postane ime osebe: Nejc.ics -> Nejc,
 "Obveznosti - Zala.ics" -> Zala.
 
   ./scripts/ics2txt.py Nejc.ics Zala.ics                 # izpise na stdout
-  ./scripts/ics2txt.py *.ics -o src/lib/data.txt            # zapise v datoteko
+  ./scripts/ics2txt.py *.ics -o urnik.txt                   # zapise v datoteko
   ./scripts/ics2txt.py *.ics --from 13:00                   # izpusti pouk pred 13:00
+
+Izpis prilepis v polje na strani in pritisnes Uporabi; stran ga stisne v naslov.
 
 Bere se en teden: vsak dogodek pristane na svojem dnevu. Casi z "Z" so v UTC in
 se pretvorijo v krajevni cas, casi s TZID se vzamejo takisni, kot so zapisani.
