@@ -21,7 +21,8 @@ const HEADER = /^(.*?)\s*:$/;
 const COLOR = /#[0-9a-fA-F]{3,8}/;
 /** Glava z "(ozadje)" pomeni odraslega: brez pasu, čez vso širino, pod otroki. */
 const BACKGROUND = /\(ozadje\)/i;
-const ROW = /^(\S+)\s+(\d{1,2})[:.](\d{2})\s*[-–—]\s*(\d{1,2})[:.](\d{2})\s+(.+)$/;
+/** Rep za uro je neobvezen — vrstica brez naziva nariše prazen pas. */
+const ROW = /^(\S+)\s+(\d{1,2})[:.](\d{2})\s*[-–—]\s*(\d{1,2})[:.](\d{2})\s*(.*)$/;
 /**
  * Pot za "~": ura odhoda, poševnica, ura prihoda domov. Ena stran sme
  * manjkati: "~17:15", "~/18:45", "~17:15/18:45". Razlika do začetka oz. konca
@@ -38,13 +39,14 @@ function reportProblems(problems: string[]): never {
 }
 
 /** Odreže neobvezne "~minute poti", "@ kraj" in "/ kdo pelje" z repa vrstice. */
-function splitTail(rest: string): {
+function splitTail(raw: string): {
 	name: string;
 	where: string;
 	driver: string;
 	travel: string;
 } {
-	let body = rest.trim();
+	// Vodilni presledek poskrbi, da " @ " in " / " ujameta tudi rep brez naziva.
+	let body = ` ${raw.trim()}`;
 	let driver = '';
 	let where = '';
 
@@ -53,7 +55,8 @@ function splitTail(rest: string): {
 	const marked = body.match(TRAVEL);
 	if (marked) {
 		travel = marked[1];
-		body = body.replace(TRAVEL, '').trim();
+		// Brez trim(): vodilni presledek še naprej nosi prepoznavo " @ " in " / ".
+		body = body.replace(TRAVEL, '');
 	}
 
 	const byDriver = body.split(' / ');
@@ -155,11 +158,6 @@ export function parseText(source: string): Schedule {
 		}
 
 		const { name, where, driver, travel } = splitTail(row[6]);
-		if (name === '') {
-			problems.push(`${lineNo}: manjka naziv dejavnosti`);
-			return;
-		}
-
 		const start = `${row[2].padStart(2, '0')}:${row[3]}`;
 		const end = `${row[4].padStart(2, '0')}:${row[5]}`;
 

@@ -21,16 +21,10 @@
 	/* Kolikšno višino porabi posamezna vrstica besedila, vključno z obrobo in odmiki. */
 	const NAME_ROW = 22;
 	const TEXT_ROW = 13;
-	/*
-	 * Ura in kraj gresta v isto vrstico. Zložena drug pod drugega bi skupaj z
-	 * nazivom zahtevala 48 px, 45-minutna ura pa jih ima pri polnem listu ~43 —
-	 * kraj bi tako izpadel prav pri najpogostejšem bloku.
-	 */
-	const meta = $derived(
-		[`${activity.start}–${activity.end}`, activity.where, activity.driver]
-			.filter(Boolean)
-			.join(' · ')
-	);
+	/* Kraj in voznik v svoji vrstici: v skupni z uro ju je ozek pas vedno odrezal. */
+	const caption = $derived([activity.where, activity.driver].filter(Boolean).join(' · '));
+	/* Brez naziva se vse premakne za eno vrstico navzgor — pas ostane uporaben. */
+	const head = $derived(activity.name === '' ? 0 : NAME_ROW);
 </script>
 
 <div
@@ -41,11 +35,16 @@
 	style="--c:{color}; --top:{top}; --height:{height}; --track:{track}; --tracks:{tracks}"
 >
 	<span class="stripe absolute inset-y-0 left-0 w-[5px]" style:background={stripe(colors)}></span>
-	<span class="name truncate text-block leading-[1.15] font-semibold">{activity.name}</span>
-	{#if room >= NAME_ROW + TEXT_ROW}
+	{#if activity.name !== ''}
+		<span class="name truncate text-block leading-[1.15] font-semibold">{activity.name}</span>
+	{/if}
+	{#if room >= head + TEXT_ROW}
 		<span class="truncate font-mono text-meta leading-[1.1] text-muted tabular-nums">
-			{meta}
+			{activity.start}–{activity.end}
 		</span>
+	{/if}
+	{#if room >= head + 2 * TEXT_ROW && caption}
+		<span class="truncate text-note leading-[1.1] text-muted">{caption}</span>
 	{/if}
 </div>
 

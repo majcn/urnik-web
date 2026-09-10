@@ -25,12 +25,31 @@ PALETTE = ['#C4562F', '#6A4C93', '#2E7D6E', '#2C6E8F', '#B4762A', '#8E4470']
 DAY_ABBR = ['pon', 'tor', 'sre', 'čet', 'pet']
 DAY_FULL = ['ponedeljek', 'torek', 'sreda', 'četrtek', 'petek']
 HEADER = """\
-# Urnik. Ena vrstica na dejavnost:  dan  ura-ura  naziv  [@ kraj]  [/ kdo pelje]
-# Dnevi: pon tor sre čet pet. Ime otroka z dvopičjem odpre njegov blok,
-# barva za imenom je neobvezna, "Nejc + Zala:" pa pomeni skupno dejavnost.
+# Urnik. Ena vrstica = ena dejavnost:
+#
+#   dan  ura-ura  naziv  [@ kraj]  [/ kdo pelje]  [~pot]
+#
+# Dnevi so pon tor sre čet pet (ali polna imena), en dan na vrstico. Rep za uro
+# je neobvezen in sme priti v poljubnem vrstnem redu; tudi naziv sme izostati:
+#   pon  08:00-16:00              sam pas, brez napisa
+#   sre  16:20-17:20  @ Kranj     pas s krajem, brez naziva
+#
+# Pot "~" se piše z urami, ne z minutami:
+#   ~17:15/18:45   odhod ob 17:15, doma ob 18:45
+#   ~17:15         samo odhod          ~/18:45   samo prihod
+# Nariše se kot črtkan blok, prilepljen nad oz. pod dejavnost. Razlika do
+# začetka pokrije pot in morebitno čakanje, zato se ni treba nič računati.
+#
+# Ime z dvopičjem odpre blok osebe, barva za imenom je neobvezna:
+#   Nejc #1E216B:            otrok — svoja polovica stolpca, tudi če je sosednja prazna
+#   Nejc + Zala:            skupna dejavnost — čez oba pasova, z deljenim robom
+#   Eva #13F2E7 (ozadje):   odrasli — čez vso širino, pod otroki in bledo
+#
+# Mreža pokriva 07:00–19:00 in se sama razširi, če kaj pade izven nje.
 # Vrstice, ki se začnejo z #, so opombe.
 #
-# Zgrajeno s scripts/ics2txt.py — če datoteko zgradiš znova, se ročni popravki izgubijo.
+# Zgrajeno s scripts/ics2txt.py. Če datoteko zgradiš znova, ostanejo nazivi,
+# ure in kraji, ročni dodatki (/ kdo pelje, ~pot, (ozadje)) pa se izgubijo.
 """
 BYDAY = {'MO': 0, 'TU': 1, 'WE': 2, 'TH': 3, 'FR': 4, 'SA': 5, 'SU': 6}
 KEEP = {'DTSTART', 'DTEND', 'SUMMARY', 'LOCATION', 'RRULE', 'STATUS'}
