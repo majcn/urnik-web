@@ -4,9 +4,9 @@
 Ime datoteke postane ime osebe: Nejc.ics -> Nejc,
 "Obveznosti - Zala.ics" -> Zala.
 
-  ./scripts/ics2txt.py Nejc.ics Zala.ics                 # izpise na stdout
-  ./scripts/ics2txt.py *.ics -o urnik.txt                   # zapise v datoteko
-  ./scripts/ics2txt.py *.ics --from 13:00                   # izpusti pouk pred 13:00
+  ./utils/ics2txt.py Nejc.ics Zala.ics                 # izpise na stdout
+  ./utils/ics2txt.py *.ics -o urnik.txt                   # zapise v datoteko
+  ./utils/ics2txt.py *.ics --from 13:00                   # izpusti pouk pred 13:00
 
 Izpis prilepis v polje na strani in pritisnes Uporabi; stran ga stisne v naslov.
 
@@ -27,34 +27,27 @@ PALETTE = ['#C4562F', '#6A4C93', '#2E7D6E', '#2C6E8F', '#B4762A', '#8E4470']
 DAY_ABBR = ['pon', 'tor', 'sre', 'čet', 'pet']
 DAY_FULL = ['ponedeljek', 'torek', 'sreda', 'četrtek', 'petek']
 HEADER = """\
-# Urnik. Ena vrstica = ena dejavnost:
+# Ena vrstica = ena dejavnost:
 #
 #   dan  ura-ura  naziv  [@ kraj]  [/ kdo pelje]  [~pot]
 #
-# Kdo pelje se izpiše v črtkanem pasu poti, skupaj z avtom in uro; če poti ni,
-# stoji pri kraju.
+# Dnevi: pon tor sre čet pet. Vse za uro je neobvezno in sme priti v poljubnem
+# vrstnem redu — tudi naziv sme izostati.
 #
-# Dnevi so pon tor sre čet pet (ali polna imena), en dan na vrstico. Rep za uro
-# je neobvezen in sme priti v poljubnem vrstnem redu; tudi naziv sme izostati:
-#   pon  08:00-16:00              sam pas, brez napisa
-#   sre  16:20-17:20  @ Kranj     pas s krajem, brez naziva
-#
-# Pot "~" se piše z urami, ne z minutami:
-#   ~17:15/18:45   odhod ob 17:15, doma ob 18:45
-#   ~17:15         samo odhod          ~/18:45   samo prihod
-# Nariše se kot črtkan blok, prilepljen nad oz. pod dejavnost. Razlika do
-# začetka pokrije pot in morebitno čakanje, zato se ni treba nič računati.
+# Pot se piše z urami: ~17:15/18:45 = odhod ob 17:15, doma ob 18:45. Ena stran
+# sme manjkati (~17:15 ali ~/18:45). Izriše se kot črtkan pas nad oz. pod
+# dejavnostjo; tam stoji tudi voznik.
 #
 # Ime z dvopičjem odpre blok osebe, barva za imenom je neobvezna:
-#   Nejc #1E216B:            oseba — svoja polovica stolpca, tudi če je sosednja prazna
-#   Nejc + Zala:            skupna dejavnost — čez oba pasova, z deljenim robom
-#   Eva #13F2E7 (ozadje):   ozadje — čez vso širino, pod ostalimi in bledo
+#   Nejc #1E216B:            oseba — svoja polovica stolpca
+#   Nejc + Zala:             skupna dejavnost — čez oba pasova
+#   Eva #13F2E7 (ozadje):    ozadje — čez vso širino, pod ostalimi in bledo
 #
-# Mreža pokriva 07:00–19:00 in se sama razširi, če kaj pade izven nje.
+# Mreža pokriva 07:00–19:00 in se razširi, če kaj pade izven nje.
 # Vrstice, ki se začnejo z #, so opombe.
 #
-# Zgrajeno s scripts/ics2txt.py. Če datoteko zgradiš znova, ostanejo nazivi,
-# ure in kraji, ročni dodatki (/ kdo pelje, ~pot, (ozadje)) pa se izgubijo.
+# Zgrajeno z utils/ics2txt.py; rocni dodatki (/ kdo pelje, ~pot, (ozadje)) se
+# ob ponovni gradnji izgubijo.
 """
 BYDAY = {'MO': 0, 'TU': 1, 'WE': 2, 'TH': 3, 'FR': 4, 'SA': 5, 'SU': 6}
 KEEP = {'DTSTART', 'DTEND', 'SUMMARY', 'LOCATION', 'RRULE', 'STATUS'}

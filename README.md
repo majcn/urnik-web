@@ -1,121 +1,127 @@
-# sv
+# Urnik
 
-Everything you need to build a Svelte project, powered by [`sv`](https://github.com/sveltejs/cli).
+Tedenski urnik oseb (ponedeljek–petek), narejen za tisk. Brez datumov, ena
+barva na osebo — list gre na hladilnik in velja, dokler se urnik ne spremeni.
 
-## Creating a project
+Stran je brez strežnika in brez shrambe: **urnik je zapisan kar v naslovu**,
+stisnjen z `lz-string`. Povezava je celotno stanje, zaznamek pa arhiv.
 
-If you're seeing this, you've probably already done this step. Congrats!
+## Kako se uporablja
+
+**Uredi urnik.** Polje pod mrežo je odprto. Vanj napišeš ali prilepiš urnik in
+pritisneš **Uporabi**; naslov se posodobi. Shrani si ga med zaznamke — ob
+naslednjem obisku se urnik naloži iz njega. **Ponastavi** te vrne na vzorec.
+
+**Osebe.** V legendi zgoraj levo klik na ime osebo umakne z lista in jo vrne
+nazaj; prečrtano ime pomeni, da je skrita. Klik na barvno ploščico odpre
+izbirnik barv. Ko ostane ena sama oseba, dobi cel stolpec dneva zase in besedilo
+se neha lomiti.
+
+**Prikaži od–do.** Zoži list na del dneva. Dejavnost, ki gleda čez mejo, se
+obreže, ne izgine. Če te zanima samo popoldne, se s tem podvoji višina vrstic in
+v bloke gre več besedila.
+
+**List.** Stikalo zgoraj desno:
+
+|          | kaj natisneš           | kaj dobiš                                                              |
+| -------- | ---------------------- | ---------------------------------------------------------------------- |
+| **A4**   | en list ležeče         | cel teden, najmanj prostora                                            |
+| **A3 ↕** | dva lista **ležeče**   | zlepiš ju po višini; dvojna višina vrstic                              |
+| **A3 ↔** | dva lista **pokončno** | zlepiš ju po širini; pon–sre levo, čet–pet in stolpec za zapiske desno |
+
+Pri obeh A3 se mreža konča točno na robu tiskanega polja, zato je bel rob
+papirja hkrati mesto stika: odreži ga na strani stika in lista zlepi. Stolpci so
+v milimetrih in enaki na obeh listih, zato se mreža ujame.
+
+**Natisni.** Natisne se samo mreža — naslov, legenda in vnosna polja ne.
+
+## Oblika urnika
+
+Ena vrstica je ena dejavnost:
+
+```
+Nejc #1E216B:
+  pon  08:20-09:05  MAT
+  pon  14:00-15:00  Plavanje   @ Bazen   / mama  ~13:30/15:30
+  sre  16:00-17:00  Kitara     @ Glasbena šola   ~15:40
+
+Nejc + Zala:
+  tor  18:00-19:00  Gasilci    @ Dom  / oči  ~17:45/19:15
+
+Eva #13F2E7 (ozadje):
+  pon  08:00-16:00
+  sre  16:20-17:20  @ Kranj  ~16:00
+```
+
+- **Ime z dvopičjem** odpre blok osebe. Barva za imenom je neobvezna — brez nje
+  jo stran dodeli sama.
+- **`A + B:`** je skupna dejavnost: gre čez oba pasova in dobi deljen barvni rob.
+- **`(ozadje)`** označi osebo, ki je na listu le za vednost: nima svojega pasu,
+  riše se čez vso širino, pod ostalimi in bledo.
+- **Dnevi** so `pon tor sre čet pet` (ali polna imena), en dan na vrstico.
+- **`@ kraj`** in **`/ kdo pelje`** sta neobvezna in smeta priti v poljubnem
+  vrstnem redu. Voznik se izpiše v pasu poti, ne v bloku dejavnosti.
+- **`~pot`** se piše z urami, ne z minutami: `~17:15/18:45` je odhod ob 17:15 in
+  prihod domov ob 18:45; ena stran sme manjkati (`~17:15`, `~/18:45`). Razlika do
+  začetka pokrije pot in morebitno čakanje, zato ni treba nič računati.
+- **Naziv sme izostati:** `pon 08:00-16:00` nariše sam pas, `sre 16:20-17:20 @ Kranj`
+  pas s krajem.
+- Vrstice, ki se začnejo z **`#`**, so opombe.
+
+Mreža pokriva 07:00–19:00 in se razširi, če kaj pade izven nje. Vsaka oseba ima
+svoj stalni pas v stolpcu dneva, tudi kadar je sosednji prazen — tako je na prvi
+pogled jasno, čigav je blok.
+
+Brez parametra v naslovu se naloži `src/lib/data.example.txt`.
+
+## utils/
+
+Pomočniki, ki niso del strani.
+
+### `utils/ics2txt.py`
+
+Pretvori izvožene koledarje (`.ics`) v besedilo, ki ga prilepiš v polje na
+strani. Ime datoteke postane ime osebe.
 
 ```sh
-# create a new project
-npx sv create my-app
+./utils/ics2txt.py Nejc.ics Zala.ics          # izpiše na zaslon
+./utils/ics2txt.py *.ics -o urnik.txt            # zapiše v datoteko
+./utils/ics2txt.py *.ics --from 13:00            # brez pouka, samo popoldne
 ```
 
-To recreate this project with the same configuration:
+Časi v UTC se pretvorijo v krajevni čas; celodnevni in odpovedani dogodki ter
+vikend odpadejo; podvojeni termini (isti predmet čez več tednov) se združijo.
+Kraj pride iz `LOCATION`, voznika in poti pa koledar ne pozna — ta dva dopišeš
+sam in se ob ponovni gradnji izgubita.
+
+## Razvoj
 
 ```sh
-# recreate this project
-npx sv@0.17.0 create --template minimal --types ts --add prettier tailwindcss="plugins:none" ai-tools="ide:claude-code+delivery:plugin" --install npm urnik-generator-pdf
+npm install
+npm run dev        # razvojni strežnik
+npm run build      # produkcijska gradnja
+npm run check      # svelte-check
+npm run format     # prettier
 ```
 
-## Developing
-
-Once you've created a project and installed dependencies with `npm install` (or `pnpm install` or `yarn`), start a development server:
-
-```sh
-npm run dev
-
-# or start the server and open the app in a new browser tab
-npm run dev -- --open
-```
-
-## Building
-
-To create a production version of your app:
-
-```sh
-npm run build
-```
-
-You can preview the production build with `npm run preview`.
-
-> To deploy your app, you may need to install an [adapter](https://svelte.dev/docs/kit/adapters) for your target environment.
-
-## Urnik
-
-Tedenski urnik otrok (ponedeljek–petek), narejen za tisk na eno stran A4 ležeče.
-Brez datumov, ena barva na otroka. Natisne se samo mreža: naslov, legenda in
-vnosna polja so `print:hidden`. Mreža pokriva 07:00–19:00 in se raztegne čez
-ves list; če kakšna dejavnost pade izven tega okna, se okno razširi.
-
-### Zgradba
+Zgradba:
 
 ```
-src/lib/data.example.txt  vzorec, ki se naloži brez parametra v naslovu
-src/lib/schedule/     čista logika, brez DOM — se da testirati sama zase
-  types.ts            Kid, Activity, Schedule
-  time.ts             ure, dnevi, slovenske sklanjatve
-  palette.ts          barve otrok in deljeni barvni rob
-  scale.ts            navpična lestvica 07:00–19:00 in razporeditev prekrivanj
-  text.ts             razčlenjevalnik besedilne oblike urnika
-  url.ts              stiskanje urnika v naslov in nazaj
-scripts/ics2txt.py    .ics -> data.txt, zunaj aplikacije
+src/lib/schedule/         čista logika, brez DOM
+  types.ts                Person, Activity, Schedule
+  time.ts                 ure, dnevi, slovenske sklanjatve
+  palette.ts              barve oseb in deljeni barvni rob
+  scale.ts                navpična lestvica, razporeditev prekrivanj, velikost lista
+  text.ts                 razčlenjevalnik besedilne oblike
+  url.ts                  stiskanje urnika v naslov in nazaj
+  data.example.txt        vzorec, ki se naloži brez parametra
 
-src/lib/components/   izris
-  Masthead, KidLegend                glava in legenda, samo na zaslonu
+src/lib/components/       izris
+  Masthead, TopBar, TimeRange        glava in kontrole, samo na zaslonu
   WeekGrid > TimeGutter, DayColumn > ActivityBlock + TravelBlock
+  NotesColumn                        črte za ročne zapiske (A3 ↔)
   DetailsPanel, ScheduleEditor       urejanje, samo na zaslonu
 ```
 
-`src/routes/+page.svelte` samo sestavi zgornje in drži stanje.
-Barve in pisave so v `src/routes/layout.css` (Tailwind `@theme`), tam je tudi `@page`.
-
-### Vnos podatkov
-
-Urnik živi v naslovu strani, stisnjen z `lz-string` (parameter `u`). Stran je
-zato brez strežnika in brez shrambe — povezava je celotno stanje, zaznamek pa
-arhiv. Brez parametra se naloži `src/lib/data.example.txt`. Uredi besedilo v
-polju pod mrežo in pritisni Uporabi; naslov se posodobi. Ena vrstica na
-dejavnost:
-
-```
-Nejc #C4562F:
-  pon  08:20-09:05  SLJ
-  sre  08:20-09:05  SLJ
-  pet  15:00-16:00  Nogomet  @ Igrišče  / oči  ~14:40/16:20
-
-Nejc + Zala:
-  tor  18:00-19:00  Gasilci
-
-Eva #13F2E7 (ozadje):
-  pon  19:30-20:30  Telovadba  @ Ljubelj  ~19:00/21:00
-```
-
-Dnevi so `pon tor sre čet pet` (ali polna imena), en dan na vrstico.
-Neobvezno `@ kraj`, `/ kdo pelje` in pot z `~`: ura odhoda, poševnica, ura
-prihoda domov (`~17:15/18:45`). Ena stran sme manjkati — `~17:15` ali `~/18:45`.
-Razlika do začetka oz. konca pokrije pot in morebitno čakanje, zato se ni treba
-nič računati. Pot se izriše kot črtkan blok, prilepljen na dejavnost: nad njo
-z uro odhoda, pod njo z uro prihoda domov. Barva v glavi je neobvezna.
-Vrstice, ki se začnejo z `#`, so opombe — skripta jih sama postavi kot
-glavo datoteke in kot ločila med dnevi.
-
-Vsak otrok ima svoj stalni pas v stolpcu dneva — pri dveh otrocih levo in desno
-polovico —, tudi kadar je sosednji prazen. Glava z `(ozadje)` pa označi odraslega:
-ta nima svojega pasu, riše se čez vso širino in pod otroki, bledo in brez
-poudarka. Na listu je le za vednost, organizacija teče po otrocih.
-Pod mrežo je isto besedilo tudi v polju za hitre popravke, a se ob osvežitvi
-strani vrne na `data.txt`.
-
-### Iz Google Koledarja
-
-Izvoženih `.ics` aplikacija ne bere — pretvori jih skripta:
-
-```sh
-./scripts/ics2txt.py Nejc.ics Zala.ics      # izpis prilepiš v polje na strani
-./scripts/ics2txt.py *.ics --from 13:00        # samo popoldne, brez pouka
-```
-
-Ime datoteke postane ime otroka. Časi v UTC se pretvorijo v krajevni čas,
-celodnevni in odpovedani dogodki ter vikend odpadejo, podvojeni termini pa se
-združijo.
+`src/routes/+page.svelte` sestavi zgornje in drži stanje. Barve, pisave in
+pravila za tisk (`@page`) so v `src/routes/layout.css`.
