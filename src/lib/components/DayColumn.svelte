@@ -17,9 +17,46 @@
 
 	/** Robova mreže že narišeta okvir in glava, zato ju preskočimo. */
 	const inner = $derived(scale.rows.filter((row) => row.offset > 0 && row.offset < scale.total));
+	const behind = $derived(items.filter((placed) => placed.background));
 	const front = $derived(items.filter((placed) => !placed.background));
+
 	const colorsOf = (ids: string[]) => ids.map((id) => colors.get(id) ?? FALLBACK_COLOR);
+	/** Ime in ura se ponovita pri dveh osebah hkrati, pas pa je enkraten. */
+	const key = (placed: PlacedActivity) =>
+		`${placed.activity.name}|${placed.start}|${placed.track}/${placed.tracks}`;
 </script>
+
+{#snippet blocks(list: PlacedActivity[])}
+	<!-- Poti gredo v svoj prehod, da dejavnosti vedno pokrijejo črtkane obrise. -->
+	{#each list as placed (key(placed))}
+		{#if placed.activity.lead}
+			<TravelBlock
+				{placed}
+				direction="tja"
+				colors={colorsOf(placed.activity.people)}
+				at={scale.at}
+				{pixelsPerMinute}
+			/>
+		{/if}
+		{#if placed.activity.back}
+			<TravelBlock
+				{placed}
+				direction="nazaj"
+				colors={colorsOf(placed.activity.people)}
+				at={scale.at}
+				{pixelsPerMinute}
+			/>
+		{/if}
+	{/each}
+	{#each list as placed (key(placed))}
+		<ActivityBlock
+			{placed}
+			colors={colorsOf(placed.activity.people)}
+			at={scale.at}
+			{pixelsPerMinute}
+		/>
+	{/each}
+{/snippet}
 
 <div
 	class="relative border-l border-rule-strong"
@@ -37,66 +74,11 @@
 	{/each}
 
 	<!--
-		Vrstni red risanja je hkrati globina: najprej odrasli iz ozadja, nato poti
-		otrok, nazadnje njihove dejavnosti. Tako otroci nikoli ne izginejo pod
-		blokom, ki je na listu le za vednost.
+		Vrstni red risanja je hkrati globina: najprej odrasli iz ozadja, nato ostali.
+		Tako oseba nikoli ne izgine pod blokom, ki je na listu le za vednost.
 	-->
-	{#each items.filter((placed) => placed.background) as placed (placed.activity.name + placed.start)}
-		{#if placed.activity.lead}
-			<TravelBlock
-				{placed}
-				direction="tja"
-				colors={colorsOf(placed.activity.kids)}
-				{pixelsPerMinute}
-				at={scale.at}
-			/>
-		{/if}
-		{#if placed.activity.back}
-			<TravelBlock
-				{placed}
-				direction="nazaj"
-				colors={colorsOf(placed.activity.kids)}
-				{pixelsPerMinute}
-				at={scale.at}
-			/>
-		{/if}
-		<ActivityBlock
-			{placed}
-			top={scale.at(placed.start)}
-			height={placed.end - placed.start}
-			colors={colorsOf(placed.activity.kids)}
-			{pixelsPerMinute}
-		/>
-	{/each}
-
-	{#each front.filter((placed) => placed.activity.lead) as placed (placed.activity.name + placed.start)}
-		<TravelBlock
-			{placed}
-			direction="tja"
-			colors={colorsOf(placed.activity.kids)}
-			{pixelsPerMinute}
-			at={scale.at}
-		/>
-	{/each}
-	{#each front.filter((placed) => placed.activity.back) as placed (placed.activity.name + placed.end)}
-		<TravelBlock
-			{placed}
-			direction="nazaj"
-			colors={colorsOf(placed.activity.kids)}
-			{pixelsPerMinute}
-			at={scale.at}
-		/>
-	{/each}
-
-	{#each front as placed (placed.activity.name + placed.start + placed.track)}
-		<ActivityBlock
-			{placed}
-			top={scale.at(placed.start)}
-			height={placed.end - placed.start}
-			colors={colorsOf(placed.activity.kids)}
-			{pixelsPerMinute}
-		/>
-	{/each}
+	{@render blocks(behind)}
+	{@render blocks(front)}
 </div>
 
 <style>

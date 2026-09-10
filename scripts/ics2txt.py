@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Pretvori izvozene koledarje .ics v besedilni urnik za src/lib/data.txt.
 
-Ime datoteke postane ime otroka: Nejc.ics -> Nejc,
+Ime datoteke postane ime osebe: Nejc.ics -> Nejc,
 "Obveznosti - Zala.ics" -> Zala.
 
   ./scripts/ics2txt.py Nejc.ics Zala.ics                 # izpise na stdout
@@ -41,9 +41,9 @@ HEADER = """\
 # začetka pokrije pot in morebitno čakanje, zato se ni treba nič računati.
 #
 # Ime z dvopičjem odpre blok osebe, barva za imenom je neobvezna:
-#   Nejc #1E216B:            otrok — svoja polovica stolpca, tudi če je sosednja prazna
+#   Nejc #1E216B:            oseba — svoja polovica stolpca, tudi če je sosednja prazna
 #   Nejc + Zala:            skupna dejavnost — čez oba pasova, z deljenim robom
-#   Eva #13F2E7 (ozadje):   odrasli — čez vso širino, pod otroki in bledo
+#   Eva #13F2E7 (ozadje):   ozadje — čez vso širino, pod ostalimi in bledo
 #
 # Mreža pokriva 07:00–19:00 in se sama razširi, če kaj pade izven nje.
 # Vrstice, ki se začnejo z #, so opombe.
@@ -136,7 +136,7 @@ def kid_name(path):
 
 
 def render(kid, color, events):
-    """Blok enega otroka; ena vrstica na dejavnost, dnevi ločeni z opombo."""
+    """Blok ene osebe; ena vrstica na dejavnost, dnevi ločeni z opombo."""
     lines = [f'{kid} {color}:']
     current_day = None
     for event in sorted(events, key=lambda e: (e['day'], e['start'])):
@@ -153,7 +153,7 @@ def render(kid, color, events):
 
 def main():
     parser = argparse.ArgumentParser(description='Pretvori .ics koledarje v besedilni urnik.')
-    parser.add_argument('files', nargs='+', help='datoteke .ics, ena na otroka')
+    parser.add_argument('files', nargs='+', help='datoteke .ics, ena na osebo')
     parser.add_argument('-o', '--out', help='zapisi v to datoteko namesto na stdout')
     parser.add_argument('--from', dest='frm', help='izpusti dejavnosti pred to uro, npr. 13:00')
     args = parser.parse_args()
@@ -185,7 +185,7 @@ def main():
     if args.out:
         Path(args.out).write_text(text, encoding='utf-8')
         total = sum(len(block) - 1 for block in blocks)
-        print(f'Zapisano v {args.out}: {total} vrstic, {len(blocks)} otrok.', file=sys.stderr)
+        print(f'Zapisano v {args.out}: {total} vrstic, {len(blocks)} oseb.', file=sys.stderr)
     else:
         sys.stdout.write(text)
 

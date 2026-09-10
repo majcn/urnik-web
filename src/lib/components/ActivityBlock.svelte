@@ -4,15 +4,17 @@
 
 	interface Props {
 		placed: PlacedActivity;
-		/** Odmik in višina na lestvici, v minutah lestvice. */
-		top: number;
-		height: number;
-		/** Barve vseh otrok, ki jim dejavnost pripada. */
+		/** Barve vseh oseb, ki jim dejavnost pripada. */
 		colors: string[];
+		/** Minuta dneva -> odmik na lestvici. */
+		at: (minute: number) => number;
 		pixelsPerMinute: number;
 	}
 
-	let { placed, top, height, colors, pixelsPerMinute }: Props = $props();
+	let { placed, colors, at, pixelsPerMinute }: Props = $props();
+
+	const top = $derived(at(placed.start));
+	const height = $derived(placed.end - placed.start);
 
 	const { activity, track, tracks } = $derived(placed);
 	const color = $derived(colors[0] ?? FALLBACK_COLOR);
@@ -49,7 +51,7 @@
 </div>
 
 <style>
-	/* Barva bloka je barva otroka, zato je tudi to calc ob izrisu, ne utility. */
+	/* Barva bloka je barva osebe, zato je tudi to calc ob izrisu, ne utility. */
 	.placed {
 		/* Reža pod blokom loči zaporedni dejavnosti. */
 		height: calc(var(--height) * var(--ppm) * 1px - 3px);

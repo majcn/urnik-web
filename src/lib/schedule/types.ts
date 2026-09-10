@@ -1,20 +1,20 @@
 /** Osnovni tipi urnika. Dan je 0–4 (ponedeljek–petek), ura pa niz "HH:MM". */
 
-export interface Kid {
+export interface Person {
 	id: string;
 	name: string;
 	note?: string;
 	color: string;
 	/**
 	 * Odrasli, ki so na listu samo za vednost: brez svojega pasu, čez vso širino
-	 * in pod otroki. Organizacija teče po otrocih, zato ti ne smejo tekmovati z njimi.
+	 * in pod ostalimi. Organizacija teče po otrocih, zato jim ozadje ne sme konkurirati.
 	 */
 	background?: boolean;
 }
 
 export interface Activity {
-	/** Id-ji otrok; več kot eden pomeni skupno dejavnost z deljenim barvnim robom. */
-	kids: string[];
+	/** Id-ji oseb; več kot eden pomeni skupno dejavnost z deljenim barvnim robom. */
+	people: string[];
 	name: string;
 	day: number;
 	start: string;
@@ -28,6 +28,6 @@ export interface Activity {
 }
 
 export interface Schedule {
-	kids: Kid[];
+	people: Person[];
 	activities: Activity[];
 }

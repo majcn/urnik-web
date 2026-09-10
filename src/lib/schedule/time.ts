@@ -31,7 +31,7 @@ export function slugify(value: string): string {
 	const base = deaccent(value)
 		.replace(/[^a-z0-9]+/g, '-')
 		.replace(/^-|-$/g, '');
-	return base || 'otrok';
+	return base || 'oseba';
 }
 
 /** Slovenska števila: 1 / 2 / 3–4 / 5+ */
@@ -46,4 +46,4 @@ export function plural(count: number, forms: PluralForms): string {
 }
 
 export const ACTIVITY_FORMS: PluralForms = ['dejavnost', 'dejavnosti', 'dejavnosti', 'dejavnosti'];
-export const CHILD_FORMS: PluralForms = ['otrok', 'otroka', 'otroci', 'otrok'];
+export const PERSON_FORMS: PluralForms = ['oseba', 'osebi', 'osebe', 'oseb'];

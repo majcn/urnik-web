@@ -8,12 +8,12 @@
 		/** "tja" stoji nad dejavnostjo, "nazaj" pod njo. */
 		direction: 'tja' | 'nazaj';
 		colors: string[];
-		pixelsPerMinute: number;
 		/** Minuta dneva -> odmik na lestvici. */
 		at: (minute: number) => number;
+		pixelsPerMinute: number;
 	}
 
-	let { placed, direction, colors, pixelsPerMinute, at }: Props = $props();
+	let { placed, direction, colors, at, pixelsPerMinute }: Props = $props();
 
 	const { activity, track, tracks } = $derived(placed);
 	const color = $derived(colors[0] ?? FALLBACK_COLOR);

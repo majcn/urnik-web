@@ -1,10 +1,10 @@
 /**
  * Navpična lestvica mreže in razporeditev prekrivajočih se dejavnosti.
  *
- * Mreža vedno pokriva 07:00–19:00. Če kakšna dejavnost pade izven tega okna,
- * se okno razširi do prve pol ure, da se nič ne izgubi.
+ * Mreža privzeto pokriva 07:00–19:00 in se razširi do prve pol ure, če kaj pade
+ * izven okna. Filter na strani meji zoži tako, da dejavnosti obreže še prej.
  */
-import type { Activity, Kid } from './types';
+import type { Activity, Person } from './types';
 import { minutes } from './time';
 
 /**
@@ -22,8 +22,8 @@ import { minutes } from './time';
  */
 const DAY_START = 7 * 60;
 const DAY_END = 19 * 60;
-/** Korak črtovja; vsaka druga črta je polna ura. */
-const STEP = 30;
+/** Korak črtovja in hkrati korak izbir v filtru; vsaka druga črta je polna ura. */
+export const STEP = 30;
 
 /**
  * Ciljna višina mreže v pikslih: kar ostane od strani A4 ležeče, ko odštejemo rob.
@@ -50,15 +50,32 @@ export interface Scale {
 	at: (minute: number) => number;
 }
 
-export function buildScale(activities: Activity[]): Scale {
-	let from = DAY_START;
-	let to = DAY_END;
+/** Meji sta izhodišče; okno se razširi navzven, kadar kaj pade izven njiju. */
+function windowFor(
+	activities: Activity[],
+	dayStart: number,
+	dayEnd: number
+): { from: number; to: number } {
+	let from = dayStart;
+	let to = Math.max(dayEnd, dayStart + 60);
 	for (const activity of activities) {
 		const leaves = minutes(activity.start) - (activity.lead ?? 0);
 		from = Math.min(from, Math.floor(leaves / STEP) * STEP);
 		const home = minutes(activity.end) + (activity.back ?? 0);
 		to = Math.max(to, Math.ceil(home / STEP) * STEP);
 	}
+	return { from, to: Math.max(to, from + 60) };
+}
+
+/** Okno, kakršno bi mreža imela brez filtra — iz njega so izbire v filtru. */
+export const naturalWindow = (activities: Activity[]) => windowFor(activities, DAY_START, DAY_END);
+
+export function buildScale(
+	activities: Activity[],
+	dayStart: number = DAY_START,
+	dayEnd: number = DAY_END
+): Scale {
+	const { from, to } = windowFor(activities, dayStart, dayEnd);
 
 	const rows: ScaleRow[] = [];
 	for (let minute = from; minute <= to; minute += STEP) {
@@ -84,28 +101,28 @@ export interface PlacedActivity {
 }
 
 /**
- * Vsak otrok ima svoj stalni pas čez cel teden, tudi kadar je sosednji prazen —
+ * Vsaka oseba ima svoj stalni pas čez cel teden, tudi kadar je sosednji prazen —
  * tako je na prvi pogled jasno, čigav je blok, brez preverjanja barve.
  * Skupne dejavnosti gredo čez vse pasove, znotraj pasu pa se prekrivanja
  * razdelijo naprej.
  */
-export function packDay(activities: Activity[], kids: Kid[]): PlacedActivity[] {
-	const behind = new Set(kids.filter((kid) => kid.background).map((kid) => kid.id));
-	const laneKids = kids.filter((kid) => !kid.background);
-	const lanes = Math.max(1, laneKids.length);
+export function packDay(activities: Activity[], people: Person[]): PlacedActivity[] {
+	const behind = new Set(people.filter((person) => person.background).map((person) => person.id));
+	const lanePeople = people.filter((person) => !person.background);
+	const lanes = Math.max(1, lanePeople.length);
 	const placed: PlacedActivity[] = [];
 
-	const isBehind = (activity: Activity) => activity.kids.every((id) => behind.has(id));
+	const isBehind = (activity: Activity) => activity.people.every((id) => behind.has(id));
 	for (const item of packOverlaps(activities.filter(isBehind))) {
 		placed.push({ ...item, background: true });
 	}
 
 	const own = activities.filter((activity) => !isBehind(activity));
-	placed.push(...packOverlaps(own.filter((activity) => activity.kids.length !== 1)));
+	placed.push(...packOverlaps(own.filter((activity) => activity.people.length !== 1)));
 
-	laneKids.forEach((kid, lane) => {
+	lanePeople.forEach((person, lane) => {
 		const mine = own.filter(
-			(activity) => activity.kids.length === 1 && activity.kids[0] === kid.id
+			(activity) => activity.people.length === 1 && activity.people[0] === person.id
 		);
 		for (const item of packOverlaps(mine)) {
 			// Pas in delitev znotraj pasu zložimo v en ulomek: track / tracks.

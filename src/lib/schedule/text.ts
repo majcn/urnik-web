@@ -15,11 +15,11 @@
  */
 import { colorAt } from './palette';
 import { clock, dayIndex, deaccent, minutes, slugify } from './time';
-import type { Activity, Kid, Schedule } from './types';
+import type { Activity, Person, Schedule } from './types';
 
 const HEADER = /^(.*?)\s*:$/;
 const COLOR = /#[0-9a-fA-F]{3,8}/;
-/** Glava z "(ozadje)" pomeni odraslega: brez pasu, čez vso širino, pod otroki. */
+/** Glava z "(ozadje)" pomeni osebo brez pasu: čez vso širino in pod ostalimi. */
 const BACKGROUND = /\(ozadje\)/i;
 /** Rep za uro je neobvezen — vrstica brez naziva nariše prazen pas. */
 const ROW = /^(\S+)\s+(\d{1,2})[:.](\d{2})\s*[-–—]\s*(\d{1,2})[:.](\d{2})\s*(.*)$/;
@@ -72,33 +72,26 @@ function splitTail(raw: string): {
 	return { name: body.trim(), where, driver, travel };
 }
 
-type TravelPart = { span: number } | { problem: string };
-
 /**
  * Ena stran zapisa "~" v minute razlike do sidra (začetka oz. konca dejavnosti).
- * Ob napaki pove, kaj je narobe — ura na napačni strani je skoraj vedno vrstica,
- * prepisana z drugega dne.
+ * Vrne minute, ob napaki pa njen opis — ura na napačni strani je skoraj vedno
+ * vrstica, prepisana z drugega dne.
  */
-function travelPart(part: string, anchor: number, side: 'pred' | 'po'): TravelPart {
-	if (part === '') return { span: 0 };
+function travelPart(part: string, anchor: number, side: 'pred' | 'po'): number | string {
+	if (part === '') return 0;
 	const stamp = part.match(/^(\d{1,2})[:.](\d{2})$/);
-	if (!stamp) return { problem: `"${part}" ni ura v obliki 17:15` };
+	if (!stamp) return `"${part}" ni ura v obliki 17:15`;
 
 	const at = Number(stamp[1]) * 60 + Number(stamp[2]);
 	const span = side === 'pred' ? anchor - at : at - anchor;
-	if (span <= 0) {
-		return {
-			problem:
-				side === 'pred'
-					? `odhod ${part} ni pred začetkom ${clock(anchor)}`
-					: `prihod ${part} ni po koncu ${clock(anchor)}`
-		};
-	}
-	return { span };
+	if (span > 0) return span;
+	return side === 'pred'
+		? `odhod ${part} ni pred začetkom ${clock(anchor)}`
+		: `prihod ${part} ni po koncu ${clock(anchor)}`;
 }
 
 export function parseText(source: string): Schedule {
-	const kids: Kid[] = [];
+	const people: Person[] = [];
 	const activities: Activity[] = [];
 	const problems: string[] = [];
 	let current: string[] | null = null;
@@ -120,23 +113,23 @@ export function parseText(source: string): Schedule {
 				.filter(Boolean);
 
 			if (names.length === 0) {
-				problems.push(`${lineNo}: prazno ime otroka`);
+				problems.push(`${lineNo}: prazno ime osebe`);
 				return;
 			}
 			current = names.map((name) => {
-				const existing = kids.find((kid) => deaccent(kid.name) === deaccent(name));
+				const existing = people.find((person) => deaccent(person.name) === deaccent(name));
 				if (existing) {
 					if (color) existing.color = color;
 					return existing.id;
 				}
-				const kid: Kid = {
+				const person: Person = {
 					id: slugify(name),
 					name,
-					color: color ?? colorAt(kids.length),
+					color: color ?? colorAt(people.length),
 					background
 				};
-				kids.push(kid);
-				return kid.id;
+				people.push(person);
+				return person.id;
 			});
 			return;
 		}
@@ -147,7 +140,7 @@ export function parseText(source: string): Schedule {
 			return;
 		}
 		if (!current) {
-			problems.push(`${lineNo}: vrstica pred imenom otroka`);
+			problems.push(`${lineNo}: vrstica pred imenom osebe`);
 			return;
 		}
 
@@ -164,30 +157,29 @@ export function parseText(source: string): Schedule {
 		const [there = '', home = ''] = travel.split('/');
 		const lead = travelPart(there, minutes(start), 'pred');
 		const back = travelPart(home, minutes(end), 'po');
-		if ('problem' in lead || 'problem' in back) {
-			const why = 'problem' in lead ? lead.problem : (back as { problem: string }).problem;
-			problems.push(`${lineNo}: pot "~${travel}" — ${why}`);
+		if (typeof lead === 'string' || typeof back === 'string') {
+			problems.push(`${lineNo}: pot "~${travel}" — ${typeof lead === 'string' ? lead : back}`);
 			return;
 		}
 
 		activities.push({
-			kids: [...current],
+			people: [...current],
 			name,
 			day,
 			start,
 			end,
 			where,
 			driver,
-			lead: lead.span,
-			back: back.span
+			lead,
+			back
 		});
 	});
 
-	if (kids.length === 0) {
-		problems.push('ni nobenega otroka — vrstica z imenom se konča z dvopičjem');
+	if (people.length === 0) {
+		problems.push('ni nobene osebe — vrstica z imenom se konča z dvopičjem');
 	}
 	if (problems.length > 0) reportProblems(problems);
 
 	activities.sort((a, b) => a.day - b.day || minutes(a.start) - minutes(b.start));
-	return { kids, activities };
+	return { people, activities };
 }

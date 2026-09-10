@@ -1,4 +1,4 @@
-/** Barve otrok. Prva je dodeljena prvemu otroku, druga drugemu in tako naprej. */
+/** Barve oseb. Prva je dodeljena prvi osebi, druga drugi in tako naprej. */
 const PALETTE = ['#C4562F', '#6A4C93', '#2E7D6E', '#2C6E8F', '#B4762A', '#8E4470'] as const;
 
 export const FALLBACK_COLOR = '#68717D';
