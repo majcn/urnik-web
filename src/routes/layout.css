@@ -81,6 +81,37 @@
 	color: var(--color-muted);
 }
 
+/*
+ * Dve različici mreže. Na listu in na širokem zaslonu je teden (WeekGrid), na
+ * telefonu en dan naenkrat (DayStrip) — pet stolpcev s pasovi oseb da na dlani
+ * ~60 px na dan in besedilo v blokih izgine. Meja je 64rem, ker toliko teden
+ * potrebuje, da ostane berljiv.
+ *
+ * Tisk gre vedno po listu, tudi če se natisne s telefona: pravilo za tisk je
+ * zadnje, zato prevlada.
+ */
+@media (width < 64rem) {
+	.week-only {
+		display: none;
+	}
+}
+
+@media (width >= 64rem) {
+	.phone-only {
+		display: none;
+	}
+}
+
+@media print {
+	.phone-only {
+		display: none;
+	}
+
+	.week-only {
+		display: block;
+	}
+}
+
 @media print {
 	@page {
 		size: A4 landscape;

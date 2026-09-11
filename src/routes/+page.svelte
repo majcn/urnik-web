@@ -4,6 +4,7 @@
 	import TopBar from '$lib/components/TopBar.svelte';
 	import ScheduleEditor from '$lib/components/ScheduleEditor.svelte';
 	import WeekGrid from '$lib/components/WeekGrid.svelte';
+	import DayStrip from '$lib/components/DayStrip.svelte';
 	import {
 		buildScale,
 		naturalWindow,
@@ -148,7 +149,7 @@
 <svelte:head><title>Urnik</title></svelte:head>
 
 <div
-	class="mx-auto max-w-[1180px] px-[22px] pt-[26px] pb-12 print:max-w-none print:p-0"
+	class="mx-auto max-w-[1180px] px-3 pt-4 pb-12 sm:px-[22px] sm:pt-[26px] print:max-w-none print:p-0"
 	class:sheet-a3v={sheet === 'A3V'}
 	class:sheet-a3h={sheet === 'A3H'}
 >
@@ -173,25 +174,32 @@
 	/>
 	<TimeRange bind:from={showFrom} bind:to={showTo} {bounds} />
 
-	{#if sheet === 'A3H'}
-		<!-- Levi list nosi uro in pon–sre, desni čet–pet in prostor za zapiske. -->
-		<div class="left-sheet">
-			<WeekGrid {people} activities={visible} {scale} {pixelsPerMinute} days={[0, 1, 2]} />
-		</div>
-		<div class="mt-4 print:mt-0">
-			<WeekGrid
-				{people}
-				activities={visible}
-				{scale}
-				{pixelsPerMinute}
-				days={[3, 4]}
-				gutter={false}
-				notes
-			/>
-		</div>
-	{:else}
-		<WeekGrid {people} activities={visible} {scale} {pixelsPerMinute} days={[0, 1, 2, 3, 4]} />
-	{/if}
+	<!-- Na ozkem zaslonu gre teden ven in namesto njega pride en dan naenkrat. -->
+	<div class="phone-only">
+		<DayStrip {people} activities={visible} {scale} />
+	</div>
+
+	<div class="week-only">
+		{#if sheet === 'A3H'}
+			<!-- Levi list nosi uro in pon–sre, desni čet–pet in prostor za zapiske. -->
+			<div class="left-sheet">
+				<WeekGrid {people} activities={visible} {scale} {pixelsPerMinute} days={[0, 1, 2]} />
+			</div>
+			<div class="mt-4 print:mt-0">
+				<WeekGrid
+					{people}
+					activities={visible}
+					{scale}
+					{pixelsPerMinute}
+					days={[3, 4]}
+					gutter={false}
+					notes
+				/>
+			</div>
+		{:else}
+			<WeekGrid {people} activities={visible} {scale} {pixelsPerMinute} days={[0, 1, 2, 3, 4]} />
+		{/if}
+	</div>
 
 	<ScheduleEditor bind:text {onapply} {onreset} />
 </div>

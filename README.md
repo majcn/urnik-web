@@ -17,6 +17,11 @@ nazaj; prečrtano ime pomeni, da je skrita. Klik na barvno ploščico odpre
 izbirnik barv. Ko ostane ena sama oseba, dobi cel stolpec dneva zase in besedilo
 se neha lomiti.
 
+**Na telefonu.** Pod 1024 px teden odstopi mesto enemu dnevu čez cel zaslon: s
+prstom levo-desno med dnevi, zavihki zgoraj za skok, ob obisku se odpre današnji
+dan. Vrstice so tam višje kot na listu, zato gre v bloke več besedila. Tisk
+ostane teden — tudi če ga sprožiš s telefona.
+
 **Prikaži od–do.** Zoži list na del dneva. Dejavnost, ki gleda čez mejo, se
 obreže, ne izgine. Če te zanima samo popoldne, se s tem podvoji višina vrstic in
 v bloke gre več besedila.
